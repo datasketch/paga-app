@@ -93,18 +93,6 @@ style <- "
  padding-top: 0rem;
 }
 
-input[type='radio']:checked:after {
-        width: 15px;
-        height: 15px;
-        border-radius: 15px;
-        top: -1px;
-        left: -1px;
-        position: relative;
-        background-color: #ff7f00;
-        content: '';
-        display: inline-block;
-        visibility: visible;
-}
 
 #relacion {
  margin-bottom: 9%;
@@ -120,19 +108,6 @@ input[type='radio']:checked:after {
 background: #ff7f00 !important;
 }
 
-.irs-bar {
-    border-top: 1px solid #ff7f00 !important;
-    border-bottom: 1px solid #ff7f00 !important;
-    background: #ff7f00 !important;
-}
-
-.irs-from, .irs-to, .irs-single {
-    color: #ff7f00 !important
-}
-
-.title-data-select {
-    color: #ff7f00 !important;
-}
 
 .buttons-group {
   display: inline-flex !important;
@@ -156,9 +131,10 @@ background: #ff7f00 !important;
  display: none;
 }
 
-.leaflet-control-attribution {
- display: none;
+label.control-label {
+    margin-bottom: 10px;
 }
+  
 "
 
 ui <- panelsPage(
@@ -200,10 +176,10 @@ ui <- panelsPage(
 
 server <- function(input, output, session) {
   
-
+  
   
   indicators_list <- reactive({
-     
+    
     basicos <- data.frame(id = c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "internacional"),
                           indicadores = c("1. Porcentaje de avance de cada hito	Entidades responsables",
                                           "2. Estado actual de implementación del hito",
@@ -236,6 +212,16 @@ server <- function(input, output, session) {
     button_id <- which(c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "internacional") %in% last_btn)
     l[[button_id]] <- gsub("needed", "needed basic_active", l[[button_id]])
     l[[button_id]] <- HTML(paste0(paste(l[[button_id]], collapse = '')))
+    if (indicator_choose() == "cumplimiento")
+      l[[3]] <- div(l[[3]],
+                    radioButtons("sub_cumplimiento",
+                                 " ", 
+                                 setNames(c("contraparte_responsable", "entidad_responsable", "contraparte_nucleo", "entidad_nucleo"), 
+                                          c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
+                                            "3.2 ¿La entidad responsable ha responido con sus responsabilidades con la contraparte?",
+                                            "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
+                                            "3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?")))
+      )
     output$basicos <- renderUI({
       l
     })
@@ -245,7 +231,7 @@ server <- function(input, output, session) {
   possible_viz <- reactive({
     p <- indicator_choose()
     if (is.null(p)) return()
-  
+    
     v <- c("bar", "table")
     v
   })
@@ -270,7 +256,7 @@ server <- function(input, output, session) {
     req(possible_viz())
     suppressWarnings(
       buttonImageInput('viz_selection',
-                        " ",
+                       " ",
                        images = possible_viz(),
                        path = 'icons/',
                        active = actual_but$active)
@@ -284,7 +270,7 @@ server <- function(input, output, session) {
     id_viz
   })
   
-
+  
   
   
   
