@@ -1,11 +1,10 @@
-webshot::install_phantomjs()
+#webshot::install_phantomjs()
 library(shinypanels)
 library(parmesan)
 library(shinyinvoer)
 library(shinydisconnect)
 library(shinybusy)
 library(dsmodules)
-library(lfltmagic)
 library(hgchmagic)
 library(DT)
 
@@ -133,9 +132,31 @@ background: #ff7f00 !important;
 
 label.control-label {
     margin-bottom: 10px;
+    margin-right: 20px;
+}
+
+.form-group {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+.form-control.selectize-control {
+  width: 600px !important;
+}
+
+.shiny-input-container:not(.shiny-input-container-inline) {
+  max-width: 600px !important;
+}
+
+.radio {
+  margin-bottom: 15px;
 }
   
 "
+
+indicadores_data <- read_rds("data/all_data.rds")
+indicadores_dic <- read_rds("data/all_dic.rds")
 
 ui <- panelsPage(
   disconnectMessage(
@@ -165,7 +186,10 @@ ui <- panelsPage(
         header_right = uiOutput("descargas"),
         can_collapse = FALSE,
         color = "chardonnay", #div(add_busy_spinner(spin = "fading-circle"),uiOutput("final_viz"))
-        body = uiOutput("final_viz"), # verbatimTextOutput("aver"),# 
+        body = div(
+          uiOutput("commitment"),
+          verbatimTextOutput("aver")
+        ),# 
         footer =  div(class = "panel-header",
                       uiOutput("viz_icons"), 
                       tags$a(
@@ -180,7 +204,7 @@ server <- function(input, output, session) {
   
   indicators_list <- reactive({
     
-    basicos <- data.frame(id = c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "internacional"),
+    basicos <- data.frame(id = c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "relacion_internacional"),
                           indicadores = c("1. Porcentaje de avance de cada hito	Entidades responsables",
                                           "2. Estado actual de implementación del hito",
                                           "3. Cumplimiento de responsabilidades de la entidad responsable y la contraparte durante el cumplimiento del hito.",
@@ -209,18 +233,19 @@ server <- function(input, output, session) {
     if(is.null(indicators_list())) return()
     l <- indicators_list()
     last_btn <- indicator_choose()
-    button_id <- which(c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "internacional") %in% last_btn)
+    button_id <- which(c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "relacion_internacional") %in% last_btn)
     l[[button_id]] <- gsub("needed", "needed basic_active", l[[button_id]])
     l[[button_id]] <- HTML(paste0(paste(l[[button_id]], collapse = '')))
     if (indicator_choose() == "cumplimiento")
       l[[3]] <- div(l[[3]],
                     radioButtons("sub_cumplimiento",
                                  " ", 
-                                 setNames(c("contraparte_responsable", "entidad_responsable", "contraparte_nucleo", "entidad_nucleo"), 
+                                 setNames(c("contraparte_responsable", "entidad_responsable"),# "contraparte_nucleo", "entidad_nucleo"), 
                                           c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
-                                            "3.2 ¿La entidad responsable ha responido con sus responsabilidades con la contraparte?",
-                                            "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
-                                            "3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?")))
+                                            "3.2 ¿La entidad responsable ha responido con sus responsabilidades con la contraparte?"#,
+                                            #"3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
+                                            #"3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?"
+                                          )))
       )
     output$basicos <- renderUI({
       l
@@ -269,6 +294,84 @@ server <- function(input, output, session) {
     if (is.null(id_viz)) id_viz <- "bar"
     id_viz
   })
+
+
+  data_intial <- reactive({
+    req(indicadores_data)
+    req(last_indicator())
+    df <- indicadores_data
+
+    if (last_indicator() == "estado") {
+      df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
+    }
+    if (last_indicator() == "resultados") {
+      df <- indicadores_data %>% drop_na(resultados)
+    }
+    if (!(last_indicator() %in% c("estado", "resultados"))) {
+      df <- indicadores_data %>%
+        drop_na(entidad)
+    }
+
+    df
+
+  })
+
+  output$commitment <- renderUI({
+    req(data_intial())
+    selectizeInput("compromiso_id", "COMPROMISO", unique(data_intial()$compromiso))
+  })
+
+  last_indicator <- reactive({
+    l_i <- indicator_choose()
+    if (l_i == "cumplimiento") {
+      if (is.null(input$sub_cumplimiento)) return()
+      l_i <- input$sub_cumplimiento
+    }
+    l_i
+  })
+
+  data_filter <- reactive({
+    req(data_intial())
+    if (is.null(input$compromiso_id)) return()
+
+    df <- data_intial() %>%
+      filter(compromiso %in% input$compromiso_id)
+
+
+    df
+  })
+
+
+
+
+  data_select <- reactive({
+    req(data_filter())
+    df <- data_filter()
+    var_s <- last_indicator()
+    if (last_indicator() %in% "estado") {
+      df <- df[,c("hito", var_s, "estado_contraparte")]
+      df <- df %>% plyr::rename(c("estado" = "Entidad", "estado_contraparte" = "Contraparte"))
+      df <- df %>% gather("tipo", "estado", -hito)
+    } else if (last_indicator() %in% "avance") {
+      df <- df[,c("hito", var_s)]
+      df$`Porcentaje de no completitud` <- (100 - df$avance)
+      df <- df %>% plyr::rename(c("avance" = "Porcentaje de completitud"))
+      df <- df %>% gather("avance", "porcentaje", -hito)
+    } else if (last_indicator() %in% "sectores") {
+      df <- df[,c("hito", var_s)]
+      df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",")
+    } else {
+      df <- df[,c("hito", var_s)]
+    }
+    df
+
+  })
+
+
+  output$aver <- renderPrint({
+    data_select()
+  })
+  
   
   
   

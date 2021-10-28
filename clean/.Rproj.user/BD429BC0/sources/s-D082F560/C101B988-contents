@@ -25,7 +25,7 @@ dic_contra <- data_frame(label_original = names(contrapartes))
 dic_contra <- dic_contra %>% left_join(dic_all)
 names(contrapartes) <- dic_contra %>% .$id
 
-data_all <- contrapartes %>% left_join(entidades)
+data_all <- contrapartes %>% full_join(entidades)
 
 
 # Compromisos -------------------------------------------------------------
@@ -38,7 +38,7 @@ dic_com <- data_frame(label_original = names(compromisos))
 dic_com <- dic_com %>% left_join(dic_all)
 names(compromisos) <- dic_com %>% .$id
 
-data_all <- compromisos %>% left_join(data_all)
+data_all <- compromisos %>% full_join(data_all)
 
 
 # write_rds(data_all, "all_data.rds")
