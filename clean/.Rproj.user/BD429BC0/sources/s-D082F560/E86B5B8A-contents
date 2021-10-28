@@ -1,16 +1,41 @@
 library(tidyverse)
 
+dic_all <- read_csv("data/dic-Grid view.csv")[,-4]
+
+
+# Entidades ---------------------------------------------------------------
+
+
 entidades <- read_csv("data/formulario-entidades-Grid view.csv")
 entidades <- entidades %>% drop_na(`Entidad responsable de registrar el avance`)
-entidades$`¿Cuál es el porcentaje de avance de implementación del hito?` <- as.numeric(gsub("%", "", entidades$`¿Cuál es el porcentaje de avance de implementación del hito?`))
 entidades <- Filter(function(x) !all(is.na(x)), entidades)
+dic_entidades <- data_frame(label_original = names(entidades))
+dic_entidades <- dic_entidades %>% left_join(dic_all)
+names(entidades) <- dic_entidades %>% .$id
+entidades$avance <- as.numeric(gsub("%", "", entidades$avance))
+
+
+# Contrapartes ------------------------------------------------------------
+
 
 contrapartes <- read_csv("data/formulario-contrapartes-Grid view.csv")
 contrapartes <- contrapartes %>% drop_na(`Nombre del compromiso`)
 contrapartes <- Filter(function(x) !all(is.na(x)), contrapartes)
+dic_contra <- data_frame(label_original = names(contrapartes))
+dic_contra <- dic_contra %>% left_join(dic_all)
+names(contrapartes) <- dic_contra %>% .$id
+
+data_all <- entidades %>% left_join(contrapartes)
+
+
+# Compromisos -------------------------------------------------------------
+
+
 
 compromisos <- read_csv("data/información-general-compromisos-Grid view.csv")
 compromisos <- Filter(function(x) !all(is.na(x)), compromisos)
+dic_com <- data_frame(label_original = names(compromisos))
+dic_com <- dic_com %>% left_join(dic_all)
 
 
 # grafico uno
