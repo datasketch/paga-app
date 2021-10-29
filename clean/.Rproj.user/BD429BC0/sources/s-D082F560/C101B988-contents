@@ -40,6 +40,10 @@ names(compromisos) <- dic_com %>% .$id
 
 data_all <- compromisos %>% full_join(data_all)
 
+data_all <- data_all %>% filter(contraparte != "Co-diseño de la hoja de ruta para la implementación del Estándar EITI para mejorar la transparencia en las industrias extractivas en Ecuador (petróleo, gas y minería)")
+
+
+
 
 # write_rds(data_all, "all_data.rds")
 # write_rds(dic_all, "all_dic.rds")

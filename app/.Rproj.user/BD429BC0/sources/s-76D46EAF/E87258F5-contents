@@ -1,4 +1,4 @@
-#webshot::install_phantomjs()
+webshot::install_phantomjs()
 library(shinypanels)
 library(parmesan)
 library(shinyinvoer)
@@ -153,6 +153,9 @@ label.control-label {
   margin-bottom: 15px;
 }
   
+#viz_icons {
+  margin-left: -33px;
+}
 "
 
 indicadores_data <- read_rds("data/all_data.rds")
@@ -188,7 +191,8 @@ ui <- panelsPage(
         color = "chardonnay", #div(add_busy_spinner(spin = "fading-circle"),uiOutput("final_viz"))
         body = div(
           uiOutput("commitment"),
-          verbatimTextOutput("aver")
+          uiOutput("final_viz")
+          #verbatimTextOutput("aver")
         ),# 
         footer =  div(class = "panel-header",
                       uiOutput("viz_icons"), 
@@ -294,33 +298,7 @@ server <- function(input, output, session) {
     if (is.null(id_viz)) id_viz <- "bar"
     id_viz
   })
-
-
-  data_intial <- reactive({
-    req(indicadores_data)
-    req(last_indicator())
-    df <- indicadores_data
-
-    if (last_indicator() == "estado") {
-      df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
-    }
-    if (last_indicator() == "resultados") {
-      df <- indicadores_data %>% drop_na(resultados)
-    }
-    if (!(last_indicator() %in% c("estado", "resultados"))) {
-      df <- indicadores_data %>%
-        drop_na(entidad)
-    }
-
-    df
-
-  })
-
-  output$commitment <- renderUI({
-    req(data_intial())
-    selectizeInput("compromiso_id", "COMPROMISO", unique(data_intial()$compromiso))
-  })
-
+  
   last_indicator <- reactive({
     l_i <- indicator_choose()
     if (l_i == "cumplimiento") {
@@ -329,51 +307,161 @@ server <- function(input, output, session) {
     }
     l_i
   })
-
+  
+  data_intial <- reactive({
+    req(indicadores_data)
+    req(last_indicator())
+    df <- indicadores_data
+    
+    if (last_indicator() == "estado") {
+      df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
+    }
+    if (last_indicator() == "resultados") {
+      df <- indicadores_data %>% drop_na(resultados)
+    }
+    if (last_indicator() %in% "contraparte_responsable") {
+      df <- indicadores_data %>% drop_na(contraparte_responsable)
+    }
+    if (last_indicator() %in% "entidad_responsable") {
+      df <- indicadores_data %>% drop_na(entidad_responsable)
+    }
+    if (!(last_indicator() %in% c("estado", "resultados"))) {
+      df <- indicadores_data %>%
+        drop_na(estado)
+    }
+    
+    
+    df
+    
+  })
+  
+  output$commitment <- renderUI({
+    req(data_intial())
+    selectizeInput("compromiso_id", "COMPROMISO", unique(data_intial()$compromiso))
+  })
+  
+  
+  
   data_filter <- reactive({
     req(data_intial())
     if (is.null(input$compromiso_id)) return()
-
+    
     df <- data_intial() %>%
       filter(compromiso %in% input$compromiso_id)
-
-
+    
+    
     df
   })
-
-
-
-
+  
+  
+  
+  
   data_select <- reactive({
     req(data_filter())
     df <- data_filter()
     var_s <- last_indicator()
     if (last_indicator() %in% "estado") {
-      df <- df[,c("hito", var_s, "estado_contraparte")]
+      df <- df[,c(var_s, "hito", "estado_contraparte")]
       df <- df %>% plyr::rename(c("estado" = "Entidad", "estado_contraparte" = "Contraparte"))
       df <- df %>% gather("tipo", "estado", -hito)
+      df$estado <- plyr::revalue(df$estado, c("Completado" = 0, "Ejecución" = 60, "Definición" = 40, "Planificación" = 10))
+      df <- df %>% select(tipo, hito, estado)
     } else if (last_indicator() %in% "avance") {
-      df <- df[,c("hito", var_s)]
+      df <- df[,c(var_s, "hito")]
       df$`Porcentaje de no completitud` <- (100 - df$avance)
       df <- df %>% plyr::rename(c("avance" = "Porcentaje de completitud"))
       df <- df %>% gather("avance", "porcentaje", -hito)
+      df <- df %>% select(avance, hito, porcentaje)
     } else if (last_indicator() %in% "sectores") {
-      df <- df[,c("hito", var_s)]
+      df <- df[,c(var_s, "hito")]
       df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",")
+    } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "resultados", "relacion_internacional")) {
+      df <- df[,c(var_s, "hito")]
     } else {
       df <- df[,c("hito", var_s)]
     }
     df
-
-  })
-
-
-  output$aver <- renderPrint({
-    data_select()
+    
   })
   
   
   
+  
+  hgch_viz <- reactive({
+    req(data_select())
+    viz <- "CatCatNum"
+    if (length(data_select()) == 2) {
+      if (last_indicator() %in% c("actividades", "participantes")) {
+        viz <- "CatNum"
+      } else
+        viz <- "CatCat"
+    }
+    
+    graph_type <- "grouped"
+    if (last_indicator() == "avance") {
+      graph_type = "stacked"
+    }
+    
+    do.call(paste0("hgch_bar_", viz), list(data = data_select(),
+                                           graph_type = graph_type,
+                                           orientation = "hor", 
+                                           hor_title = " ",
+                                           ver_title = " ",
+                                           label_wrap = 150))
+  })
+  
+  
+  output$hgch_viz <- renderHighchart({
+    hgch_viz()
+  })
+  
+  
+  
+  output$table_view <- renderDataTable({
+    req(data_filter())
+    df <- data_filter()
+    df_dic <- data.frame(id = names(df))
+    df_dic <- df_dic %>% left_join(indicadores_dic)
+    names(df) <- df_dic$label
+    DT::datatable(df,
+                  rownames = F,
+                  options = list(
+                    language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
+                    lengthChange = F,
+                    pageLength = 15,
+                    scrollX = T,
+                    scrollY = T,
+                    initComplete = JS(
+                      "function(settings, json) {",
+                      "$(this.api().table().header()).css({'background-color': '#0a4a83', 'color': '#fff'});",
+                      "}")
+                  )) %>% 
+      DT::formatStyle( 0 , target= 'row',color = '#0A446B', fontSize ='13px', lineHeight='15px')
+  })
+  
+  
+  
+  output$final_viz <- renderUI({
+    if (is.null(id_viz())) return()
+    if (id_viz() == "table") {
+      v <- dataTableOutput("table_view", width = 900)
+    } else {
+      v <- highchartOutput("hgch_viz")
+    }
+    v
+  })
+  
+  output$descargas <- renderUI({
+    if (is.null(actual_but$active)) return()
+    if (actual_but$active != "table") {
+      downloadImageUI("download_viz", dropdownLabel = "Descarga", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown")
+    } else {
+      downloadTableUI("dropdown_table", dropdownLabel = "Descarga", formats = c("csv", "xlsx", "json"), display = "dropdown")
+    }
+  })
+  
+  downloadTableServer("dropdown_table", element = data_filter(), formats = c("csv", "xlsx", "json"))
+  downloadImageServer("download_viz", element = hgch_viz(), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
   
   
   
