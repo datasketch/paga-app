@@ -364,8 +364,8 @@ server <- function(input, output, session) {
       df <- df[,c(var_s, "hito", "estado_contraparte")]
       df <- df %>% plyr::rename(c("estado" = "Entidad", "estado_contraparte" = "Contraparte"))
       df <- df %>% gather("tipo", "estado", -hito)
-      df$estado <- plyr::revalue(df$estado, c("Completado" = 0, "Ejecución" = 60, "Definición" = 40, "Planificación" = 10))
-      df <- df %>% select(tipo, hito, estado)
+      df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 0, "Ejecución" = 60, "Definición" = 40, "Planificación" = 10))
+      df <- df %>% select(tipo, hito, estadoxx, estado)
     } else if (last_indicator() %in% "avance") {
       df <- df[,c(var_s, "hito")]
       df$`Porcentaje de no completitud` <- (100 - df$avance)
@@ -385,7 +385,31 @@ server <- function(input, output, session) {
   })
   
   
+  tooltip_ref <- reactive({
   
+    id_button <- last_indicator()
+    if (id_button == "avance") {
+      tx <- "{hito}<br/><b>{avance}: {porcentaje}%</b>"
+    } else if (id_button == "estado") {
+      tx <- "<b>{tipo}</b> <br/>{hito}<br/> <b>Estado: {estado}</b>"
+    } else if (id_button == "contraparte_responsable") {
+      tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso: {contraparte_responsable} </b>"
+    } else if (id_button == "entidad_responsable") {
+      tx <- "{hito}<br/> <b>La entidad responsable ha responido con sus responsabilidades con la contraparte: {entidad_responsable} </b>"
+    } else if (id_button == "actividades") {
+      tx <- "{hito} <br/> <b>Número de actividades {actividades}</b>"
+    } else if (id_button == "participantes") {
+      tx <- "{hito} <br/> <b>Número de participantes {participantes}</b>"
+    } else if (id_button == "sectores") {
+      tx <- "{hito} <br/> <b>Sector: {sectores}</b>" 
+    } else if (id_button == "resultados") {
+      tx <- "{hito} <br/> <b>Percepción de resultados: {resultados}</b>" 
+    } else if (id_button == "relacion_internacional") {
+      tx <- "{hito} <br/> <b>Cumplimiento con iniciativas internacionales: {relacion_internacional}</b>" 
+    } else {
+      tx <- return()
+    }
+  })
   
   hgch_viz <- reactive({
     req(data_select())
@@ -407,6 +431,9 @@ server <- function(input, output, session) {
                                            orientation = "hor", 
                                            hor_title = " ",
                                            ver_title = " ",
+                                           tooltip = tooltip_ref(),
+                                           format_sample_num = "1,234.",
+                                           palette_colors = c("#293662", "#0076b7", "#78dda0", "#ff4e17", "#ff7f00", "#fdd06e"),
                                            label_wrap = 150))
   })
   
