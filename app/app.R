@@ -82,7 +82,7 @@ style <- "
 }
 
 .dropdown-action-trigger {
- background-color: #ff7f00 !important;
+ background-color: #0076b7 !important;
 }
 
 .style_section {
@@ -182,7 +182,8 @@ ui <- panelsPage(
         width = 350,
         body = div(
           uiOutput("basicos")
-        )
+        ),
+        footer = tags$i("Fecha de actualización: Octubre 22 del 2021")
   ),
   panel(title = "Visualización",
         id = "naranja",
@@ -414,16 +415,22 @@ server <- function(input, output, session) {
   hgch_viz <- reactive({
     req(data_select())
     viz <- "CatCatNum"
+    yEnabled <- FALSE
+    showLabels <- FALSE
     if (length(data_select()) == 2) {
       if (last_indicator() %in% c("actividades", "participantes")) {
         viz <- "CatNum"
+        showLabels <- TRUE
       } else
         viz <- "CatCat"
     }
-    
+    yMax <- NULL
     graph_type <- "grouped"
     if (last_indicator() == "avance") {
       graph_type = "stacked"
+      yEnabled <- TRUE
+      yMax <- 100
+      showLabels <- TRUE
     }
     
     do.call(paste0("hgch_bar_", viz), list(data = data_select(),
@@ -431,6 +438,9 @@ server <- function(input, output, session) {
                                            orientation = "hor", 
                                            hor_title = " ",
                                            ver_title = " ",
+                                           y_max = yMax,
+                                           dataLabels_show = showLabels,
+                                           grid_y_enabled = yEnabled,
                                            tooltip = tooltip_ref(),
                                            format_sample_num = "1,234.",
                                            palette_colors = c("#293662", "#0076b7", "#78dda0", "#ff4e17", "#ff7f00", "#fdd06e"),
@@ -480,15 +490,14 @@ server <- function(input, output, session) {
   
   output$descargas <- renderUI({
     if (is.null(actual_but$active)) return()
-    if (actual_but$active != "table") {
-      downloadImageUI("download_viz", dropdownLabel = "Descarga", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown")
-    } else {
-      downloadTableUI("dropdown_table", dropdownLabel = "Descarga", formats = c("csv", "xlsx", "json"), display = "dropdown")
-    }
+    div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 20px;",
+      downloadImageUI("download_viz", dropdownLabel = "Descarga Vis", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
+      downloadTableUI("dropdown_table", dropdownLabel = "Descarga Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
+    )
   })
   
-  downloadTableServer("dropdown_table", element = data_filter(), formats = c("csv", "xlsx", "json"))
-  downloadImageServer("download_viz", element = hgch_viz(), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
+  downloadTableServer("dropdown_table", element = reactive(data_filter()), formats = c("csv", "xlsx", "json"))
+  downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
   
   
   
