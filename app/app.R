@@ -245,11 +245,11 @@ server <- function(input, output, session) {
       l[[3]] <- div(l[[3]],
                     radioButtons("sub_cumplimiento",
                                  " ", 
-                                 setNames(c("contraparte_responsable", "entidad_responsable"),# "contraparte_nucleo", "entidad_nucleo"), 
+                                 setNames(c("contraparte_responsable", "entidad_responsable", "contraparte_nucleo", "entidad_nucleo"), 
                                           c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
-                                            "3.2 ¿La entidad responsable ha responido con sus responsabilidades con la contraparte?"#,
-                                            #"3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
-                                            #"3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?"
+                                            "3.2 ¿La entidad responsable ha responido con sus responsabilidades con la contraparte?",
+                                            "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
+                                            "3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?"
                                           )))
       )
     output$basicos <- renderUI({
@@ -261,8 +261,11 @@ server <- function(input, output, session) {
   possible_viz <- reactive({
     p <- indicator_choose()
     if (is.null(p)) return()
-    
     v <- c("bar", "table")
+    if (p %in% c("sectores", "relacion_internacional")) {
+      v <- c("treemap", "table")
+    }
+    
     v
   })
   
@@ -314,6 +317,7 @@ server <- function(input, output, session) {
     req(last_indicator())
     df <- indicadores_data
     
+    
     if (last_indicator() == "estado") {
       df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
     }
@@ -361,11 +365,16 @@ server <- function(input, output, session) {
     req(data_filter())
     df <- data_filter()
     var_s <- last_indicator()
+    
+    if (last_indicator() %in% c( "contraparte_nucleo", "entidad_nucleo")) return()
+    
+    
     if (last_indicator() %in% "estado") {
       df <- df[,c(var_s, "hito", "estado_contraparte")]
       df <- df %>% plyr::rename(c("estado" = "Entidad", "estado_contraparte" = "Contraparte"))
       df <- df %>% gather("tipo", "estado", -hito)
-      df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 0, "Ejecución" = 60, "Definición" = 40, "Planificación" = 10))
+      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito = df$hito[1], estado = NA))
+      df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 5, "Ejecución" = 4, "Definición" = 3, "Planificación" = 2))
       df <- df %>% select(tipo, hito, estadoxx, estado)
     } else if (last_indicator() %in% "avance") {
       df <- df[,c(var_s, "hito")]
@@ -376,7 +385,20 @@ server <- function(input, output, session) {
     } else if (last_indicator() %in% "sectores") {
       df <- df[,c(var_s, "hito")]
       df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",")
-    } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "resultados", "relacion_internacional")) {
+    } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable")) {
+      df <- df[,c(var_s, "hito")]
+      df$tipo <- str_to_title(gsub("_responsable", "", last_indicator()))
+      df$value <- plyr::revalue(df[[last_indicator()]], c("Sí" = 4, "No" = 2))
+      df <- df %>% select(tipo, hito, value, everything())
+      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito = df$hito[1], value = NA))
+     
+    } else if (last_indicator() %in%   "resultados") {
+      df <- df[,c(var_s, "hito")]
+      df$value <- plyr::revalue(df$resultados, c("Se mantuvo igual" = 1, "Mejoró un poco" = 3, "Mejoró sustancialmente" = 5))
+      df$tipo <- "Contraparte"
+      df <- df %>% select(tipo, hito, value, everything())
+      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito = df$hito[1], value = NA))
+    } else if (last_indicator() %in% "relacion_internacional") {
       df <- df[,c(var_s, "hito")]
     } else {
       df <- df[,c("hito", var_s)]
@@ -386,17 +408,33 @@ server <- function(input, output, session) {
   })
   
   
-  tooltip_ref <- reactive({
-  
+  opts_plot <- reactive({
+    
+    fjs <- NULL
+    order_s <- NULL
+    yMax <- NULL
     id_button <- last_indicator()
+    colors <- c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e")
     if (id_button == "avance") {
       tx <- "{hito}<br/><b>{avance}: {porcentaje}%</b>"
+      yMax <- 100
+      colors <- c("#293662", "#78dda0")
     } else if (id_button == "estado") {
       tx <- "<b>{tipo}</b> <br/>{hito}<br/> <b>Estado: {estado}</b>"
+      fjs <- JS("function () {var arreglo = ['','','Planificación', 'Definición', 'Ejecución', 'Completado'];return arreglo[this.value];}")
+      order_s <- c("Entidad", "Contraparte","Grupo Núcleo")
+      yMax <- 5
+      colors <- c("#0076b7","#ff4e17", "#78dda0")
     } else if (id_button == "contraparte_responsable") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso: {contraparte_responsable} </b>"
+      order_s <- c("Contraparte", "Grupo Núcleo")
+      colors <- c("#0076b7", "#78dda0")
+      fjs <- JS("function () {var arreglo = ['','No', '' , 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "entidad_responsable") {
       tx <- "{hito}<br/> <b>La entidad responsable ha responido con sus responsabilidades con la contraparte: {entidad_responsable} </b>"
+      order_s <- c("Entidad", "Grupo Núcleo")
+      colors <- c("#ff4e17", "#78dda0")
+      fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "actividades") {
       tx <- "{hito} <br/> <b>Número de actividades {actividades}</b>"
     } else if (id_button == "participantes") {
@@ -405,15 +443,28 @@ server <- function(input, output, session) {
       tx <- "{hito} <br/> <b>Sector: {sectores}</b>" 
     } else if (id_button == "resultados") {
       tx <- "{hito} <br/> <b>Percepción de resultados: {resultados}</b>" 
+      fjs <- JS("function () {var arreglo = ['','Se mantuvo igual', '','Mejoró un poco','' ,'Mejoró sustancialmente'];return arreglo[this.value];}")
+      order_s <- c("Contraparte", "Grupo Núcleo")
+      colors <- c("#0076b7", "#78dda0")
+      yMax <- 5
     } else if (id_button == "relacion_internacional") {
       tx <- "{hito} <br/> <b>Cumplimiento con iniciativas internacionales: {relacion_internacional}</b>" 
     } else {
       tx <- return()
     }
+    
+    list(
+      tooltip = tx,
+      formatterJS = fjs,
+      orderLegend = order_s,
+      yMax = yMax,
+      colors = colors
+    )
   })
   
   hgch_viz <- reactive({
     req(data_select())
+    print(data_select())
     viz <- "CatCatNum"
     yEnabled <- FALSE
     showLabels <- FALSE
@@ -424,27 +475,35 @@ server <- function(input, output, session) {
       } else
         viz <- "CatCat"
     }
-    yMax <- NULL
+    
     graph_type <- "grouped"
     if (last_indicator() == "avance") {
       graph_type = "stacked"
       yEnabled <- TRUE
-      yMax <- 100
       showLabels <- TRUE
     }
     
-    do.call(paste0("hgch_bar_", viz), list(data = data_select(),
-                                           graph_type = graph_type,
-                                           orientation = "hor", 
-                                           hor_title = " ",
-                                           ver_title = " ",
-                                           y_max = yMax,
-                                           dataLabels_show = showLabels,
-                                           grid_y_enabled = yEnabled,
-                                           tooltip = tooltip_ref(),
-                                           format_sample_num = "1,234.",
-                                           palette_colors = c("#293662", "#0076b7", "#78dda0", "#ff4e17", "#ff7f00", "#fdd06e"),
-                                           label_wrap = 150))
+    type_viz <- actual_but$active
+    viz_sel <- paste0("hgch_", type_viz, "_", viz)
+
+    do.call(viz_sel, list(data = data_select(),
+                          graph_type = graph_type,
+                          orientation = "hor", 
+                          hor_title = " ",
+                          ver_title = " ",
+                          y_max = opts_plot()$yMax,
+                          order_legend = opts_plot()$orderLegend,
+                          y_axis_align = "right",
+                          formatter_js = opts_plot()$formatterJS,
+                          dataLabels_show = showLabels,
+                          label_wrap_legend = 100,
+                          # drop_na_legend = TRUE,
+                          # drop_na = TRUE,
+                          #grid_y_enabled = yEnabled,
+                          tooltip = opts_plot()$tooltip,
+                          format_sample_num = "1,234.",
+                          palette_colors = opts_plot()$colors,
+                          label_wrap = 150))
   })
   
   
@@ -480,6 +539,7 @@ server <- function(input, output, session) {
   
   output$final_viz <- renderUI({
     if (is.null(id_viz())) return()
+    if (is.null(data_select())) return("No hay datos disponibles")
     if (id_viz() == "table") {
       v <- dataTableOutput("table_view", width = 900)
     } else {
@@ -491,8 +551,8 @@ server <- function(input, output, session) {
   output$descargas <- renderUI({
     if (is.null(actual_but$active)) return()
     div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 20px;",
-      downloadImageUI("download_viz", dropdownLabel = "Descarga Vis", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
-      downloadTableUI("dropdown_table", dropdownLabel = "Descarga Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
+         downloadImageUI("download_viz", dropdownLabel = "Descarga Vis", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
+         downloadTableUI("dropdown_table", dropdownLabel = "Descarga Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
     )
   })
   
