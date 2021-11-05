@@ -12,6 +12,11 @@ library(DT)
 style <- "
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap');
 
+.panel,.panel-header,.panel-footer  {
+  background: #f2f2f2;
+}
+
+
 
 @media screen and (max-width: 768px) { 
 .layout-container{
@@ -55,7 +60,7 @@ style <- "
 
 .btn-default {
  font-family: IBM Plex Sans;
- background: #ffffff !important;
+ background: #f2f2f2 !important;
  border: 1px solid #6a6767;
  color: #6a6767;
  float: left;
@@ -149,6 +154,10 @@ label.control-label {
   max-width: 600px !important;
 }
 
+.selectize-input.full {
+    background-color: #f2f2f2;
+}
+
 .radio {
   margin-bottom: 15px;
 }
@@ -165,9 +174,19 @@ padding: 5%;
 font-weight: 500;
 }
 
+.panel-footer {
+    padding: 0rem 2rem !important;
+}
+
 "
 
 indicadores_data <- read_rds("data/all_data.rds")
+indicadores_data$hito_id <- str_extract(indicadores_data$hito, "Hito [0-9]")
+# indicadores_data$hito <- gsub("\\.", "",indicadores_data$hito)
+# indicadores_data$hito <- paste0(indicadores_data$hito, ".")
+# 
+# indicadores_data$hito_id <-gsub("\\s*\\:[^\\)]+\\.","", indicadores_data$hito)
+indicadores_data$cmp_esperado <- ifelse(lubridate::ymd(indicadores_data$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 indicadores_dic <- read_rds("data/all_dic.rds")
 
 ui <- panelsPage(
@@ -309,7 +328,7 @@ server <- function(input, output, session) {
   
   
   id_viz <- reactive({
-    id_viz <- input$viz_selection
+    id_viz <- actual_but$active
     if (is.null(id_viz)) id_viz <- "bar"
     id_viz
   })
@@ -378,42 +397,43 @@ server <- function(input, output, session) {
     var_s <- last_indicator()
     
     if (last_indicator() %in% c( "contraparte_nucleo", "entidad_nucleo")) return()
-    
-    
+    # all_hitos <- data.frame()
+    # print("aaaaa")
+    # print(all_hitos)
     if (last_indicator() %in% "estado") {
-      df <- df[,c(var_s, "hito", "estado_contraparte")]
+      df <- df[,c(var_s, "hito_id", "estado_contraparte", "cmp_esperado", "hito")]
       df <- df %>% plyr::rename(c("estado" = "Entidad", "estado_contraparte" = "Contraparte"))
-      df <- df %>% gather("tipo", "estado", -hito)
-      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito = df$hito[1], estado = NA))
+      df <- df %>% gather("tipo", "estado", c("Entidad", "Contraparte"))
+      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito_id = df$hito_id[1], estado = NA))
       df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 5, "Ejecución" = 4, "Definición" = 3, "Planificación" = 2))
-      df <- df %>% select(tipo, hito, estadoxx, estado)
+      df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito)
     } else if (last_indicator() %in% "avance") {
-      df <- df[,c(var_s, "hito", "fecha_inicio", "fecha_finalizacion")]
+      df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
       df$`Porcentaje de no completitud` <- (100 - df$avance)
       df <- df %>% plyr::rename(c("avance" = "Porcentaje de completitud"))
       df <- df %>% gather("avance", "porcentaje", c("Porcentaje de no completitud", "Porcentaje de completitud"))
-      df <- df %>% select(avance, hito, porcentaje, everything()) %>% filter(porcentaje>0)
-
+      df <- df %>% select(avance, hito_id, porcentaje, everything()) %>% filter(porcentaje>0)
+      
     } else if (last_indicator() %in% "sectores") {
-      df <- df[,c(var_s, "hito")]
+      df <- df[,c(var_s, "hito_id", "cmp_esperado", "hito")]
       df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",")
     } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable")) {
-      df <- df[,c(var_s, "hito")]
+      df <- df[,c(var_s, "hito_id", "cmp_esperado", "hito")]
       df$tipo <- str_to_title(gsub("_responsable", "", last_indicator()))
       df$value <- plyr::revalue(df[[last_indicator()]], c("Sí" = 4, "No" = 2))
-      df <- df %>% select(tipo, hito, value, everything())
-      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito = df$hito[1], value = NA))
-     
+      df <- df %>% select(tipo, hito_id, value, everything())
+      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito_id = df$hito_id[1], value = NA))
+      
     } else if (last_indicator() %in%   "resultados") {
-      df <- df[,c(var_s, "hito")]
+      df <- df[,c(var_s, "hito_id", "cmp_esperado", "hito")]
       df$value <- plyr::revalue(df$resultados, c("Se mantuvo igual" = 1, "Mejoró un poco" = 3, "Mejoró sustancialmente" = 5))
       df$tipo <- "Contraparte"
-      df <- df %>% select(tipo, hito, value, everything())
-      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito = df$hito[1], value = NA))
+      df <- df %>% select(tipo, hito_id, value, everything())
+      df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito_id = df$hito_id[1], value = NA))
     } else if (last_indicator() %in% "relacion_internacional") {
-      df <- df[,c(var_s, "hito", "relacion_internacional_justificacion")]
+      df <- df[,c(var_s, "hito_id", "relacion_internacional_justificacion", "cmp_esperado", "hito")]
     } else {
-      df <- df[,c("hito", var_s)]
+      df <- df[,c("hito_id", var_s, "cmp_esperado", "hito")]
     }
     df
     
@@ -446,6 +466,7 @@ server <- function(input, output, session) {
       order_s <- c("Contraparte", "Grupo Núcleo")
       colors <- c("#0076b7", "#78dda0")
       cursor <- "pointer"
+      yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       fjs <- JS("function () {var arreglo = ['','No', '' , 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "entidad_responsable") {
@@ -453,6 +474,7 @@ server <- function(input, output, session) {
       order_s <- c("Entidad", "Grupo Núcleo")
       colors <- c("#ff4e17", "#78dda0")
       cursor <- "pointer"
+      yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "actividades") {
@@ -494,19 +516,28 @@ server <- function(input, output, session) {
     )
   })
   
-
+  
   hgch_viz <- reactive({
     req(data_select())
+    
+    format_x_js <- NULL
+    axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
+    print(axisColor)
+    if (nrow(axisColor) != 0) {
+    axisColor <- unique(axisColor$hito_id)
+    hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
+    
+    format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color: #0076b7 !important;fill: #0076b7 !important;\">' + this.value + '</text>'; } else { return this.value}; }"))
+    }
+    
     viz <- "CatCatNum"
     showLabels <- FALSE
-    if (length(data_select()) == 2) {
-      if (last_indicator() %in% c("actividades", "participantes")) {
-        viz <- "CatNum"
-        showLabels <- TRUE
-      } else
-        viz <- "CatCat"
+    
+    if (last_indicator() %in% c("actividades", "participantes")) {
+      viz <- "CatNum"
+      showLabels <- TRUE
     }
-    if (last_indicator() == "relacion_internacional") {
+    if (last_indicator() %in% c("relacion_internacional", "sectores")) {
       viz <- "CatCat"
     }
     
@@ -519,18 +550,21 @@ server <- function(input, output, session) {
     
     type_viz <- actual_but$active
     viz_sel <- paste0("hgch_", type_viz, "_", viz)
-
+    
     do.call(viz_sel, list(data = data_select(),
                           graph_type = graph_type,
                           orientation = "hor", 
                           hor_title = " ",
                           ver_title = " ",
+                          label_wrap = 100,
+                          background_color = "transparent",
                           y_max = opts_plot()$yMax,
                           order_legend = opts_plot()$orderLegend,
                           y_axis_align = "right",
+                          formatter_x_js = format_x_js,
                           formatter_js = opts_plot()$formatterJS,
                           dataLabels_show = showLabels,
-                          label_wrap_legend = 100,
+                          label_wrap_legend = 150,
                           cursor = opts_plot()$cursor,
                           # drop_na_legend = TRUE,
                           # drop_na = TRUE,
@@ -538,8 +572,7 @@ server <- function(input, output, session) {
                           tooltip = opts_plot()$tooltip,
                           format_sample_num = "1,234.",
                           palette_colors = opts_plot()$colors,
-                          clickFunction = opts_plot()$clickFc,
-                          label_wrap = 150))
+                          clickFunction = opts_plot()$clickFc))
   })
   
   
@@ -547,7 +580,7 @@ server <- function(input, output, session) {
     hgch_viz()
   })
   
-
+  
   
   
   textModal <- reactive({
@@ -559,59 +592,59 @@ server <- function(input, output, session) {
     if (is.null(input$hcClicked)) return()
     req(data_filter())
     df <- data_filter()
-   
+    
     
     hito_select <- gsub("<br/>", " ", input$hcClicked$id)
     hito_select <- gsub("co- creación", "co-creación", hito_select)
-    df <- df %>% filter(hito %in% hito_select)
-
-  
+    df <- df %>% filter(hito_id %in% hito_select)
+    
+    
     if (last_indicator() == "actividades") {
       tx <- div(class = "bodyModal",
-        HTML(
-          paste0("<p class = 'title-modal'>",
-        indicadores_dic$label_original[indicadores_dic$id == "actividades_descripcion"],
-        "</p><br/> <h3>Contraparte</h3><br/> <p class = 'description-modal'>",
-        df$actividades_descripcion, "</p>"
-          )
-        )
+                HTML(
+                  paste0("<p class = 'title-modal'>",
+                         indicadores_dic$label_original[indicadores_dic$id == "actividades_descripcion"],
+                         "</p><br/> <h3>Contraparte</h3><br/> <p class = 'description-modal'>",
+                         df$actividades_descripcion, "</p>"
+                  )
+                )
       ) 
     }
     
     if (last_indicator() == "resultados") {
       tx <- div(class = "bodyModal",
-        HTML(
-          paste0("<h3>Contraparte</h3><br/><p class = 'title-modal'>",
-          indicadores_dic$label_original[indicadores_dic$id == "realidad_inicial"],":</p><p class = 'description-modal'>",
-          df$realidad_inicial,"</p><br/><p class = 'title-modal'>",
-          indicadores_dic$label_original[indicadores_dic$id == "realidad_descripcion"],":</p>",
-          df$realidad_descripcion,"</p>"
-          )
-        )
+                HTML(
+                  paste0("<h3>Contraparte</h3><br/><p class = 'title-modal'>",
+                         indicadores_dic$label_original[indicadores_dic$id == "realidad_inicial"],":</p><p class = 'description-modal'>",
+                         df$realidad_inicial,"</p><br/><p class = 'title-modal'>",
+                         indicadores_dic$label_original[indicadores_dic$id == "realidad_descripcion"],":</p>",
+                         df$realidad_descripcion,"</p>"
+                  )
+                )
       )
     }
     
     if (last_indicator() %in% c("contraparte_responsable")) {
-     tx <- div(class = "bodyModal",
-       "Sin información de la justificación de cumplimiento de responsabilidades"
-     )
+      tx <- div(class = "bodyModal",
+                "Sin información de la justificación de cumplimiento de responsabilidades"
+      )
     }
     
     if (last_indicator() %in% c("entidad_responsable")) {
       tx <- div(class = "bodyModal",
-        HTML(
-          paste0("<p class = 'title-modal'>",
-                 indicadores_dic$label_original[indicadores_dic$id == "entidad_responsable_justificacion"],
-                 "</p><br/> <h3>Entidad</h3><br/> <p class = 'description-modal'>",
-                 df$entidad_responsable_justificacion, "</p>"
-          )
-        )
+                HTML(
+                  paste0("<p class = 'title-modal'>",
+                         indicadores_dic$label_original[indicadores_dic$id == "entidad_responsable_justificacion"],
+                         "</p><br/> <h3>Entidad</h3><br/> <p class = 'description-modal'>",
+                         df$entidad_responsable_justificacion, "</p>"
+                  )
+                )
       ) 
-     }
+    }
     
     tx
     
-
+    
   })
   
   output$message_modal<- renderUI({
@@ -662,7 +695,16 @@ server <- function(input, output, session) {
     } else {
       v <- highchartOutput("hgch_viz")
     }
-    v
+    
+    if (id_viz() == "bar") {
+      div (
+        HTML("<div style=background:#cccccc;max-width:230px;padding:2px;margin-left:2%;>Hitos en desarrollo <span style=color:#0076b7;margin-left:3%;>Hitos finalizados</span></div>"),
+        v
+      )
+    } else {
+      v
+    }
+
   })
   
   output$descargas <- renderUI({
