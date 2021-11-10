@@ -197,7 +197,8 @@ indicadores_data$hito_id <- str_extract(indicadores_data$hito, "Hito [0-9]")
 # indicadores_data$hito_id <-gsub("\\s*\\:[^\\)]+\\.","", indicadores_data$hito)
 indicadores_data$cmp_esperado <- ifelse(lubridate::ymd(indicadores_data$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 indicadores_dic <- read_rds("data/all_dic.rds")
-
+indicadores_dic <- indicadores_dic %>% distinct(id, .keep_all = TRUE)
+  
 ui <- panelsPage(
   shinypanels::modal(id = 'modal_extra_info', title = NULL, uiOutput("message_modal")),
   
@@ -405,9 +406,7 @@ server <- function(input, output, session) {
     var_s <- last_indicator()
     
     if (last_indicator() %in% c( "contraparte_nucleo", "entidad_nucleo")) return()
-    # all_hitos <- data.frame()
-    # print("aaaaa")
-    # print(all_hitos)
+  
     if (last_indicator() %in% "estado") {
       df <- df[,c(var_s, "hito_id", "estado_contraparte", "cmp_esperado", "hito")]
       df <- df %>% plyr::rename(c("estado" = "Entidad", "estado_contraparte" = "Contraparte"))
@@ -447,9 +446,9 @@ server <- function(input, output, session) {
     
     if (nrow(df) != 0) {
     df_hitos <- data_filter() %>% select(hito_id, hito) %>% distinct()
-    print("blabla")
+   
     ind_hito <- setdiff(df_hitos$hito_id, unique(df$hito_id))
-    print(ind_hito)
+
     if (!(identical(ind_hito, character()))) {
       df_hitos <- df_hitos %>% filter(hito_id %in% ind_hito)
       df <- df %>% bind_rows(df_hitos)
@@ -576,10 +575,12 @@ server <- function(input, output, session) {
     
     type_viz <- actual_but$active
     viz_sel <- paste0("hgch_", type_viz, "_", viz)
-    print(viz_sel)
+  
     do.call(viz_sel, list(data = data_select(),
                           graph_type = graph_type,
                           orientation = "hor", 
+                          caption = "Fecha de actualización: Octubre 22 del 2021",
+                          legend_y_position = -30,
                           hor_title = " ",
                           ver_title = " ",
                           label_wrap = 100,
@@ -693,13 +694,33 @@ server <- function(input, output, session) {
   output$table_view <- renderDataTable({
     req(data_filter())
     if (actual_but$active != "table") return()
-    df <- data_filter()
-    # df_dic <- data.frame(id = names(df))
-    # df_dic <- df_dic %>% left_join(indicadores_dic)
-    # names(df) <- df_dic$label
+    df <- data_filter() %>% dplyr::select(-hito_id, -cmp_esperado)
+    df_dic <- data.frame(id = names(df))
+    df_dic <- df_dic %>% left_join(indicadores_dic) 
+    tooltip_names <- paste0("'",df_dic$label_original, "'", collapse = ",")
+    
+    
+    headerCallback <- paste0(c(
+      "function(thead, data, start, end, display){",
+      "  var tooltips = [", tooltip_names ,"];",
+      "  for(var i=0; i<37; i++){",
+      "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+      "  }",
+      "}"
+    ))
     DT::datatable(df,
                   rownames = F,
+                  escape = FALSE,
                   options = list(
+                    autoWidth = TRUE,
+                    scrollX = TRUE,   ## enable scrolling on X axis
+                    scrollY = TRUE,  
+                    headerCallback = JS(headerCallback),
+                    columnDefs= list(
+                      list(
+                        width = '300px', targets = c(1, 14, 19, 24)
+                      )
+                    ),
                     language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
                     lengthChange = F,
                     pageLength = 15,
