@@ -189,6 +189,8 @@ font-weight: 500;
 
 indicadores_data <- read_rds("data/all_data.rds")
 indicadores_data$hito_id <- str_extract(indicadores_data$hito, "Hito [0-9]")
+
+
 # indicadores_data$hito <- gsub("\\.", "",indicadores_data$hito)
 # indicadores_data$hito <- paste0(indicadores_data$hito, ".")
 # 
@@ -349,49 +351,48 @@ server <- function(input, output, session) {
     l_i
   })
   
-  data_intial <- reactive({
-    req(indicadores_data)
-    req(last_indicator())
-    df <- indicadores_data
-    
-    
-    if (last_indicator() == "estado") {
-      df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
-    }
-    if (last_indicator() == "resultados") {
-      df <- indicadores_data %>% drop_na(resultados)
-    }
-    if (last_indicator() %in% "contraparte_responsable") {
-      df <- indicadores_data %>% drop_na(contraparte_responsable)
-    }
-    if (last_indicator() %in% "entidad_responsable") {
-      df <- indicadores_data %>% drop_na(entidad_responsable)
-    }
-    if (!(last_indicator() %in% c("estado", "resultados"))) {
-      df <- indicadores_data %>%
-        drop_na(estado)
-    }
-    
-    
-    df
-    
-  })
+  # data_intial <- reactive({
+  #   req(indicadores_data)
+  #   req(last_indicator())
+  #   df <- indicadores_data
+  #   
+  #   
+  #   # if (last_indicator() == "estado") {
+  #   #   df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
+  #   # }
+  #   # if (last_indicator() == "resultados") {
+  #   #   df <- indicadores_data %>% drop_na(resultados)
+  #   # }
+  #   # if (last_indicator() %in% "contraparte_responsable") {
+  #   #   df <- indicadores_data %>% drop_na(contraparte_responsable)
+  #   # }
+  #   # if (last_indicator() %in% "entidad_responsable") {
+  #   #   df <- indicadores_data %>% drop_na(entidad_responsable)
+  #   # }
+  #   # if (!(last_indicator() %in% c("estado", "resultados"))) {
+  #   #   df <- indicadores_data %>%
+  #   #     drop_na(estado)
+  #   # }
+  #   
+  #   
+  #   df
+  #   
+  # })
   
   output$commitment <- renderUI({
-    req(data_intial())
-    selectizeInput("compromiso_id", "COMPROMISO", unique(data_intial()$compromiso))
+    req(indicadores_data)
+    selectizeInput("compromiso_id", "COMPROMISO", unique(indicadores_data$compromiso))
   })
   
   
   
   data_filter <- reactive({
-    req(data_intial())
+    req(indicadores_data)
     if (is.null(input$compromiso_id)) return()
     
-    df <- data_intial() %>%
+    df <- indicadores_data %>%
       filter(compromiso %in% input$compromiso_id)
-    
-    
+
     df
   })
   
@@ -420,7 +421,6 @@ server <- function(input, output, session) {
       df <- df %>% plyr::rename(c("avance" = "Porcentaje de cumplimiento"))
       df <- df %>% gather("avance", "porcentaje", c("Porcentaje de cumplimiento", "Porcentaje de no cumplimiento"))
       df <- df %>% select(avance, hito_id, porcentaje, everything()) %>% filter(porcentaje>0)
-      
     } else if (last_indicator() %in% "sectores") {
       df <- df[,c(var_s, "hito_id", "cmp_esperado", "hito")]
       df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",")
@@ -440,9 +440,21 @@ server <- function(input, output, session) {
     } else if (last_indicator() %in% "relacion_internacional") {
       df <- df[,c("relacion_internacional_descripcion", "hito_id", var_s, "cmp_esperado", "hito", "relacion_internacional_justificacion")]
       df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",")
-      df$relacion_internacional_descripcion[is.na(df$relacion_internacional_descripcion)] <- "NA"
+      #df$relacion_internacional_descripcion[is.na(df$relacion_internacional_descripcion)] <- "NA"
     } else {
       df <- df[,c("hito_id", var_s, "cmp_esperado", "hito")]
+    }
+    
+    if (nrow(df) != 0) {
+    df_hitos <- data_filter() %>% select(hito_id, hito) %>% distinct()
+    print("blabla")
+    ind_hito <- setdiff(df_hitos$hito_id, unique(df$hito_id))
+    print(ind_hito)
+    if (!(identical(ind_hito, character()))) {
+      df_hitos <- df_hitos %>% filter(hito_id %in% ind_hito)
+      df <- df %>% bind_rows(df_hitos)
+      #df[[1]][is.na(df[[1]])] <- "NABLABLA"
+    }
     }
     df
     
@@ -533,7 +545,8 @@ server <- function(input, output, session) {
   hgch_viz <- reactive({
     if (is.null(data_select())) return()
     if (nrow(data_select()) == 0) return()
-    print(data_select())
+ 
+    #print(unique(data_select()$hito_id))
     if (actual_but$active == "table") return()
     format_x_js <- NULL
     axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
@@ -570,6 +583,7 @@ server <- function(input, output, session) {
                           hor_title = " ",
                           ver_title = " ",
                           label_wrap = 100,
+                          na_color = "red",
                           background_color = "transparent",
                           y_max = opts_plot()$yMax,
                           order_legend = opts_plot()$orderLegend,
