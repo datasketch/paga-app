@@ -141,6 +141,7 @@ background: #ff7f00 !important;
 label.control-label {
     margin-bottom: 10px;
     margin-right: 20px;
+    color: #E4602A;
 }
 
 .form-group {
@@ -159,6 +160,7 @@ label.control-label {
 
 .selectize-input.full {
     background-color: #f2f2f2;
+    border: 1px solid #E4602A !important;
 }
 
 .radio {
@@ -402,6 +404,8 @@ server <- function(input, output, session) {
   
   data_select <- reactive({
     req(data_filter())
+    req(last_indicator())
+   
     df <- data_filter()
     var_s <- last_indicator()
     
@@ -452,7 +456,6 @@ server <- function(input, output, session) {
     if (!(identical(ind_hito, character()))) {
       df_hitos <- df_hitos %>% filter(hito_id %in% ind_hito)
       df <- df %>% bind_rows(df_hitos)
-      #df[[1]][is.na(df[[1]])] <- "NABLABLA"
     }
     }
     df
@@ -542,7 +545,7 @@ server <- function(input, output, session) {
   
   
   hgch_viz <- reactive({
-    if (is.null(data_select())) return()
+    req(data_select())
     if (nrow(data_select()) == 0) return()
  
     #print(unique(data_select()$hito_id))
@@ -552,7 +555,7 @@ server <- function(input, output, session) {
     if (nrow(axisColor) != 0) {
     axisColor <- unique(axisColor$hito_id)
     hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
-    format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color: #0076b7 !important;fill: #0076b7 !important;\">' + this.value + '</text>'; } else { return this.value}; }"))
+    format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color: #CC2121 !important;fill: #CC2121 !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
     
     viz <- "CatCatNum"
@@ -584,6 +587,8 @@ server <- function(input, output, session) {
                           hor_title = " ",
                           ver_title = " ",
                           label_wrap = 100,
+                          dataLabels_size = 13,
+                          text_size = 14,
                           na_color = "red",
                           background_color = "transparent",
                           y_max = opts_plot()$yMax,
@@ -718,7 +723,7 @@ server <- function(input, output, session) {
                     headerCallback = JS(headerCallback),
                     columnDefs= list(
                       list(
-                        width = '300px', targets = c(1, 14, 19, 24)
+                        width = '350px', targets = c(0,1, 14, 19, 24)
                       )
                     ),
                     language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
@@ -747,7 +752,7 @@ server <- function(input, output, session) {
     
     if (id_viz() == "bar") {
       div (
-        HTML("<div style=background:#cccccc;max-width:230px;padding:2px;margin-left:2%;>Hitos en desarrollo <span style=color:#0076b7;margin-left:3%;>Hitos finalizados</span></div>"),
+        HTML("<div style=background:#cccccc;width:250px;max-width:auto;padding:2px;margin-left:2%;font-weight:500;>Hitos en desarrollo <span style=color:#CC2121;margin-left:3%;>Hitos finalizados</span></div>"),
         v
       )
     } else {
