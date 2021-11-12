@@ -16,6 +16,10 @@ style <- "
   background: #f2f2f2;
 }
 
+.panel-footer {
+height: 100px;
+}
+
 .layout-panels {
     background-color: #ffffff;
 }
@@ -91,6 +95,13 @@ style <- "
 
 .dropdown-action-trigger {
  background-color: #0076b7 !important;
+}
+
+#info_add {
+ background-color: #0076b7 !important;
+ border: 1px solid #0076b7 !important;
+ color: #ffffff;
+ margin-left: 7%;
 }
 
 .style_section {
@@ -239,6 +250,7 @@ ui <- panelsPage(
         ),# 
         footer =  div(class = "panel-header",
                       uiOutput("viz_icons"), 
+                      actionButton("info_add", "DESCRIPCIÓN DE ESTA GRÁFICA"),
                       tags$a(
                         href="https://www.datasketch.co", target="blank",
                         img(src='ds_logo.png', align = "right", width = 150, height = 110)))
@@ -544,29 +556,25 @@ server <- function(input, output, session) {
   })
   
   
-  hgch_viz <- reactive({
+  opts_viz <- reactive({
     req(data_select())
+    req(last_indicator())
+    req(opts_plot())
     if (nrow(data_select()) == 0) return()
- 
-    #print(unique(data_select()$hito_id))
     if (actual_but$active == "table") return()
-    format_x_js <- NULL
-    axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
-    if (nrow(axisColor) != 0) {
-    axisColor <- unique(axisColor$hito_id)
-    hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
-    format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color: #CC2121 !important;fill: #CC2121 !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
-    }
     
-    viz <- "CatCatNum"
     showLabels <- FALSE
-    
     if (last_indicator() %in% c("actividades", "participantes")) {
       viz <- "CatNum"
       showLabels <- TRUE
     }
-    if (last_indicator() %in% c("relacion_internacional", "sectores")) {
-      viz <- "CatCat"
+    
+    format_x_js <- NULL
+    axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
+    if (nrow(axisColor) != 0) {
+      axisColor <- unique(axisColor$hito_id)
+      hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
+      format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color: #CC2121;fill: #CC2121;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
     
     graph_type <- "grouped"
@@ -575,42 +583,71 @@ server <- function(input, output, session) {
       yEnabled <- TRUE
       showLabels <- TRUE
     }
+    list(
+      data = data_select(),
+      graph_type = graph_type,
+      orientation = "hor",
+      caption = "Fecha de actualización: Octubre 22 del 2021",
+      legend_y_position = -30,
+      hor_title = " ",
+      ver_title = " ",
+      label_wrap = 100,
+      dataLabels_size = 13,
+      text_size = 14,
+      na_color = "red",
+      background_color = "transparent",
+      y_max = opts_plot()$yMax,
+      order_legend = opts_plot()$orderLegend,
+      y_axis_align = "right",
+      formatter_x_js = format_x_js,
+      formatter_js = opts_plot()$formatterJS,
+      dataLabels_show = showLabels,
+      label_wrap_legend = 150,
+      cursor = opts_plot()$cursor,
+      legend_align = "left",
+      caption_align = "right",
+      # drop_na_legend = TRUE,
+      # drop_na = TRUE,
+      grid_y_enabled = opts_plot()$yEnabled,
+      tooltip = opts_plot()$tooltip,
+      format_sample_num = "1,234.",
+      palette_colors = opts_plot()$colors,
+      clickFunction = opts_plot()$clickFc
+    )
+  })
+  
+  
+  viz_type <- reactive({
+    req(last_indicator())
+    if (actual_but$active == "table") return()
+    viz <- "CatCatNum"
+    showLabels <- FALSE
+    
+    if (last_indicator() %in% c("actividades", "participantes")) {
+      viz <- "CatNum"
+    }
+    if (last_indicator() %in% c("relacion_internacional", "sectores")) {
+      viz <- "CatCat"
+    }
     
     type_viz <- actual_but$active
     viz_sel <- paste0("hgch_", type_viz, "_", viz)
+    viz_sel
+  })
   
-    do.call(viz_sel, list(data = data_select(),
-                          graph_type = graph_type,
-                          orientation = "hor", 
-                          caption = "Fecha de actualización: Octubre 22 del 2021",
-                          legend_y_position = -30,
-                          hor_title = " ",
-                          ver_title = " ",
-                          label_wrap = 100,
-                          dataLabels_size = 13,
-                          text_size = 14,
-                          na_color = "red",
-                          background_color = "transparent",
-                          y_max = opts_plot()$yMax,
-                          order_legend = opts_plot()$orderLegend,
-                          y_axis_align = "right",
-                          formatter_x_js = format_x_js,
-                          formatter_js = opts_plot()$formatterJS,
-                          dataLabels_show = showLabels,
-                          label_wrap_legend = 150,
-                          cursor = opts_plot()$cursor,
-                          # drop_na_legend = TRUE,
-                          # drop_na = TRUE,
-                          grid_y_enabled = opts_plot()$yEnabled,
-                          tooltip = opts_plot()$tooltip,
-                          format_sample_num = "1,234.",
-                          palette_colors = opts_plot()$colors,
-                          clickFunction = opts_plot()$clickFc))
+  hgch_viz <- reactive({
+    req(viz_type())
+    req(opts_viz())
+    mdf_opts <- opts_viz()
+    mdf_opts <- mdf_opts[-(grep("formatter_x_js", names(mdf_opts)))]
+    do.call(viz_type(), mdf_opts)
   })
   
   
   output$hgch_viz <- renderHighchart({
-    hgch_viz()
+    req(viz_type())
+    req(opts_viz())
+    do.call(viz_type(), opts_viz())
   })
   
   
