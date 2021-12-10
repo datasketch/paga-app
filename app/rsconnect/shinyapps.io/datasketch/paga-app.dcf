@@ -5,10 +5,10 @@ account: datasketch
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4997327
-bundleId: 5242097
+bundleId: 5356863
 url: https://datasketch.shinyapps.io/paga-app/
-when: 1636667368.10393
-lastSyncTime: 1636667368.10394
+when: 1639164190.97132
+lastSyncTime: 1639164190.97143
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: data/.DS_Store|files.zip|zipTest/data.csv|zipTest/dic.csv
+ignoredFiles: data/.DS_Store
