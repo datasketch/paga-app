@@ -68,62 +68,62 @@ data_all <- data_all %>% filter(contraparte != "Co-diseño de la hoja de ruta pa
 # 
 
 
-library(hgchmagic)
-dd <- compromisos %>% full_join(entidades)
-dd$avance[is.na(dd$avance)] <- 0
-df_1 <- data.frame(id = "Cumplimiento",name = "Porcentaje total de cumplimiento del Plan",b = "aaa jas", porcentaje = mean(dd$avance, na.rm = TRUE))
-df_2 <- data.frame(id = "No cumplimiento",name = "Porcentaje que falta para el cumplimiento total del Plan",b = "aaa jas",  porcentaje =  100 - mean(dd$avance, na.rm = TRUE))
-df <- df_1 %>% bind_rows(df_2)
-df$name <- as.character(df$name)
-df$b <- as.character(df$b)
-df <- df %>% select(id, b, porcentaje, name)
-df$porcentaje <- round(df$porcentaje, 2)
-h1 <- hgch_bar_CatCatNum(df,
-                         reversedYaxis = TRUE,
-                         orientation = "hor",
-                         graph_type = "stacked",
-                         y_max = 100,
-                         suffix = "%",
-                         hor_title = " ",
-                         ver_title = " ",
-                         dataLabels_show = TRUE,
-                         dataLabels_template = "{series.name}: {y}% <br/>",
-                         grid_y_enabled = FALSE,
-                         grid_x_enabled = FALSE,
-                         #order = c("Cumplimiento", "No cumplimiento"),
-                         #order_legend = c("Cumplimiento", "No cumplimiento"),
-                         palette_colors = c("#fdd60e", "#ff7f00"),
-                         tooltip = "{name}: {porcentaje}%",
-                         background_color = "transparent",
-                         dataLabels_text_outline = FALSE,
-                         dataLabels_size = 15,
-                         legend_show = FALSE
-                         )%>%
-hc_chart(height = 200)
-h1
-# htmlwidgets::saveWidget(h1, "porcentaje_cumplimiento.html", background = "transparent")
-# 
-# 
-df_c <- dd %>% group_by(compromiso) %>%
-  summarise(promedio = mean(avance, na.rm = TRUE))
-library(dsvizprep)
-df_c  <- dsvizprep::order_category(df_c, "compromiso", unique(compromisos$compromiso), label_wrap = 100)
-df_c$name <- paste0("Compromiso ", 1:nrow(df_c))
-df_c <- df_c %>% select(name, promedio, compromiso)
-h2 <- hgch_bar_CatNum(df_c,
-                label_wrap = 100,
-                #orientation = "hor",
-                order = unique(df_c$name),
-                suffix = "%",
-                hor_title = " ",
-                ver_title = " ",
-                dataLabels_show = TRUE,
-                format_sample_num = "1,234.",
-                palette_colors = "#0076b7",
-                tooltip = "{compromiso} <br/>Avance: {promedio}%",
-                background_color = "transparent")
-h2
-htmlwidgets::saveWidget(h2, "compromisos_cumplimiento.html", background = "transparent")
+# library(hgchmagic)
+# dd <- compromisos %>% full_join(entidades)
+# dd$avance[is.na(dd$avance)] <- 0
+# df_1 <- data.frame(id = "Cumplimiento",name = "Porcentaje total de cumplimiento del Plan",b = "aaa jas", porcentaje = mean(dd$avance, na.rm = TRUE))
+# df_2 <- data.frame(id = "No cumplimiento",name = "Porcentaje que falta para el cumplimiento total del Plan",b = "aaa jas",  porcentaje =  100 - mean(dd$avance, na.rm = TRUE))
+# df <- df_1 %>% bind_rows(df_2)
+# df$name <- as.character(df$name)
+# df$b <- as.character(df$b)
+# df <- df %>% select(id, b, porcentaje, name)
+# df$porcentaje <- round(df$porcentaje, 2)
+# h1 <- hgch_bar_CatCatNum(df,
+#                          reversedYaxis = TRUE,
+#                          orientation = "hor",
+#                          graph_type = "stacked",
+#                          y_max = 100,
+#                          suffix = "%",
+#                          hor_title = " ",
+#                          ver_title = " ",
+#                          dataLabels_show = TRUE,
+#                          dataLabels_template = "{series.name}: {y}% <br/>",
+#                          grid_y_enabled = FALSE,
+#                          grid_x_enabled = FALSE,
+#                          #order = c("Cumplimiento", "No cumplimiento"),
+#                          #order_legend = c("Cumplimiento", "No cumplimiento"),
+#                          palette_colors = c("#fdd60e", "#ff7f00"),
+#                          tooltip = "{name}: {porcentaje}%",
+#                          background_color = "transparent",
+#                          dataLabels_text_outline = FALSE,
+#                          dataLabels_size = 15,
+#                          legend_show = FALSE
+#                          )%>%
+# hc_chart(height = 200)
+# h1
+# # htmlwidgets::saveWidget(h1, "porcentaje_cumplimiento.html", background = "transparent")
+# # 
+# # 
+# df_c <- dd %>% group_by(compromiso) %>%
+#   summarise(promedio = mean(avance, na.rm = TRUE))
+# library(dsvizprep)
+# df_c  <- dsvizprep::order_category(df_c, "compromiso", unique(compromisos$compromiso), label_wrap = 100)
+# df_c$name <- paste0("Compromiso ", 1:nrow(df_c))
+# df_c <- df_c %>% select(name, promedio, compromiso)
+# h2 <- hgch_bar_CatNum(df_c,
+#                 label_wrap = 100,
+#                 #orientation = "hor",
+#                 order = unique(df_c$name),
+#                 suffix = "%",
+#                 hor_title = " ",
+#                 ver_title = " ",
+#                 dataLabels_show = TRUE,
+#                 format_sample_num = "1,234.",
+#                 palette_colors = "#0076b7",
+#                 tooltip = "{compromiso} <br/>Avance: {promedio}%",
+#                 background_color = "transparent")
+# h2
+# htmlwidgets::saveWidget(h2, "compromisos_cumplimiento.html", background = "transparent")
 
 # # data_all <- compromisos %>% full_join(data_all)
 # # 
@@ -155,4 +155,24 @@ htmlwidgets::saveWidget(h2, "compromisos_cumplimiento.html", background = "trans
 # comp1_estado <- comp1_estado %>% select(estado = `¿Cuál es el estado de cumplimiento del hito?`, `Nombre del hito`, avance = `¿Cuál es el porcentaje de avance de implementación del hito?`)
 # hgch_bar_CatCatNum(comp1_estado, orientation = "hor", label_wrap = 150)
 
+
+### Grupo nucleo
+grupoNucleo <- read_csv("data/Grupo-nucleo_exported_1.csv")
+grupoNucleo <- grupoNucleo %>% unite("hito", `Hito primer compromiso`:`Hito décimo compromiso`, na.rm = T)
+grupoNucleo <- grupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "Indicador 2",
+                                                "entidad_responsable_gn" = "Indicador 3 - entidad - grupo nucleo",
+                                                "contraparte_responsable_gn" = "Indicador 3 - contraparte - grupo nucleo",
+                                                "contraparte_grupoNucleo" = "Indicador 3 - contraparte",
+                                                "entidad_grupoNucleo" = "Indicador 3 - entidad", 
+                                                "resultados_grupoNucleo" = "Indicador 7",
+                                                "estrategias_grupoNucleo" = "Indicador 9",
+                                                "compromiso" = "Compromiso",
+                                                "fecha_registro_grupoNucleo" = "Fecha de registro"))
+
+
+
+
+
+data_fin <- data_all %>% left_join(grupoNucleo)
+write_rds(data_fin, "all_data.rds")
 
