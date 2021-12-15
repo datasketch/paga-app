@@ -228,14 +228,14 @@ scroll STYLES
 
 indicadores_data <- read_rds("data/all_data.rds")
 indicadores_data$hito_id <- str_extract(indicadores_data$hito, "Hito [0-9]")
-
+#indicadores_data$fecha_finalizacion[is.na(indicadores_data$fecha_finalizacion)] <- "2021-10-20"
 
 # indicadores_data$hito <- gsub("\\.", "",indicadores_data$hito)
 # indicadores_data$hito <- paste0(indicadores_data$hito, ".")
 # 
 # indicadores_data$hito_id <-gsub("\\s*\\:[^\\)]+\\.","", indicadores_data$hito)
 #indicadores_data$fecha_finalizacion <- gsub("\\/","-", indicadores_data$fecha_finalizacion)
-indicadores_data$cmp_esperado <- ifelse(lubridate::mdy(indicadores_data$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
+indicadores_data$cmp_esperado <- ifelse(lubridate::ymd(indicadores_data$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 indicadores_dic <- read_rds("data/all_dic.rds")
 indicadores_dic <- indicadores_dic %>% distinct(id, .keep_all = TRUE)
 
@@ -322,6 +322,21 @@ server <- function(input, output, session) {
     last_btn <- input$last_click
     if (is.null(last_btn)) last_btn <- "avance"
     last_btn
+  })
+  
+  ind_table <- reactive({
+    req(indicator_choose())
+    idsInd <- c("avance", "estado", "cumplimiento", "actividades", "participantes",
+                "sectores", "resultados", "relacion_internacional", "estrategias_grupoNucleo")
+    ic <- indicator_choose()
+    tx <- NULL
+    
+    for (i in 1:length(idsInd)) {
+      if (ic == idsInd[i]) {
+        tx <- paste0("Indicador", i)
+      }
+    }
+    tx
   })
   
   observe({
@@ -492,6 +507,7 @@ server <- function(input, output, session) {
       df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito)
     } else if (last_indicator() %in% "avance") {
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
+      df$avance[is.na(df$avance)] <- 0
       df$`Porcentaje de no cumplimiento` <- (100 - df$avance)
       df <- df %>% plyr::rename(c("avance" = "Porcentaje de cumplimiento"))
       df <- df %>% gather("avance", "porcentaje", c("Porcentaje de cumplimiento", "Porcentaje de no cumplimiento"))
@@ -616,7 +632,7 @@ server <- function(input, output, session) {
       fjs <- JS("function () {var arreglo = ['Detenido','Definición','Planificación', 'Ejecución', 'Completado'];return arreglo[this.value];}")
       order_s <- c("Entidad responsable", "Contraparte","Grupo Núcleo")
       yMax <- 4
-      labelsRotationY <- 0
+      #labelsRotationY <- 45
       colors <- c("#0076b7","#ff4e17", "#78dda0")
     } else if (id_button == "contraparte_responsable") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso: {contraparte_responsable} </b> <br/><br/>Da click para más información"
@@ -738,8 +754,7 @@ server <- function(input, output, session) {
     if (nrow(axisColor) != 0) {
       axisColor <- unique(axisColor$hito_id)
       hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
-      #print(hito_high)
-      format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color: #CC2121;fill: #CC2121;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
+      format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color:#109a4f !important;fill:#109a4f !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
     #print(format_x_js)
 
@@ -822,21 +837,23 @@ server <- function(input, output, session) {
     axisInd <- data_mdf %>% filter(cmp_esperado %in% "si")
     if (nrow(axisInd) != 0) {
       axisInd <- unique(axisInd$hito_id)
-      data_mdf$hito_id <- ifelse(data_mdf$hito_id %in% axisInd, paste0("(",data_mdf$hito_id, ")"), data_mdf$hito_id)
+      data_mdf$hito_id <- ifelse(data_mdf$hito_id %in% axisInd, data_mdf$hito_id, paste0(data_mdf$hito_id, "*"))
     }
 
     mdf_opts <- mdf_opts[-(grep("formatter_x_js", names(mdf_opts)))]
     mdf_opts$title <- input$compromiso_id
-    mdf_opts$subtitle <- "(Hitos finalizados)    Hitos en desarrollo"
+    mdf_opts$subtitle <- "Hitos en desarrollo*"
     mdf_opts$data <- data_mdf
     do.call(viz_type(), mdf_opts)
   })
 
 
+ 
   output$hgch_viz <- renderHighchart({
     tryCatch({
       req(viz_type())
       req(opts_viz())
+      print(opts_viz())
       do.call(viz_type(), opts_viz())
     }, error = function(con) {
       return()
@@ -1003,7 +1020,7 @@ server <- function(input, output, session) {
 
     if (id_viz() == "bar") {
       div (
-        HTML("<div style=background:#cccccc;width:250px;max-width:auto;padding:2px;margin-left:2%;font-weight:500;> <span style=color:#CC2121;>Hitos finalizados</span><span style=margin-left:3%;>Hitos en desarrollo</span></div>"),
+        HTML("<div style=background:#cccccc;width:250px;max-width:auto;padding:2px;margin-left:2%;font-weight:500;> <span style=color:#109a4f;>Hitos finalizados</span><span style=margin-left:3%;>Hitos en desarrollo</span></div>"),
         v
       )
     } else {
@@ -1026,7 +1043,7 @@ server <- function(input, output, session) {
     }
   })
 
-  downloadTableServer("dropdown_table", element = reactive(list("data"=data_filter(), "dic"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE)
+  downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
   downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
 
 
