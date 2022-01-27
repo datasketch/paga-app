@@ -424,6 +424,7 @@ server <- function(input, output, session) {
   })
 
   last_indicator <- reactive({
+    req(indicator_choose())
     l_i <- indicator_choose()
     if (l_i == "cumplimiento") {
       if (is.null(input$sub_cumplimiento)) return()
@@ -462,6 +463,9 @@ server <- function(input, output, session) {
 
   output$commitment <- renderUI({
     req(indicadores_data)
+    req(last_indicator())
+    if (last_indicator() == "estrategias_grupoNucleo") return()
+    
     selectizeInput("compromiso_id", "COMPROMISO", unique(indicadores_data$compromiso))
   })
 
@@ -470,11 +474,17 @@ server <- function(input, output, session) {
 
   data_filter <- reactive({
     req(indicadores_data)
+    req(last_indicator())
     if (is.null(input$compromiso_id)) return()
 
     df <- indicadores_data %>%
       filter(compromiso %in% input$compromiso_id)
 
+    if (last_indicator() %in% "estrategias_grupoNucleo") {
+      df <- indicadores_data
+    }
+    
+    
     df
   })
 
@@ -492,10 +502,8 @@ server <- function(input, output, session) {
   data_select <- reactive({
     req(data_filter())
     req(last_indicator())
-
     df <- data_filter()
     var_s <- last_indicator()
-    
     #if (last_indicator() %in% c( "contraparte_grupoNucleo", "entidad_grupoNucleo")) return()
 
     if (last_indicator() %in% "estado") {
@@ -520,7 +528,8 @@ server <- function(input, output, session) {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
       }
-      df$sectores <- trimws(df$sectores)
+      df$sectores <- trimws(df$sectores) 
+      #
     } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_grupoNucleo", "entidad_grupoNucleo")) {
       if (last_indicator() == "contraparte_responsable") {
         df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
@@ -550,7 +559,7 @@ server <- function(input, output, session) {
         df$entidad_responsable <- df$`Grupo Núcleo`
         df$tipo <- "Grupo Núcleo"
       }
-      df$value <- as.numeric(plyr::revalue(df$value, c("Sí" = 2, "No" = 4)))
+      df$value <- as.numeric(plyr::revalue(df$value, c("Sí" = 4, "No" = 2)))
       df <- df %>% select(tipo, hito_id, value, everything())
     } else if (last_indicator() %in%   "resultados") {
       df <- df[,c(var_s, "resultados_grupoNucleo","hito_id", "cmp_esperado", "hito")]
@@ -573,10 +582,14 @@ server <- function(input, output, session) {
     }
 
     if (last_indicator() %in% "estrategias_grupoNucleo") {
-      df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo, c("Sí" = 2, "No" = 4)))
-      df <- df %>% select(hito_id, value, "estrategias_grupoNucleo", everything())
+      df <- indicadores_data %>% drop_na(estrategias_grupoNucleo)
+      indComp <- data.frame(compromiso = unique(df$compromiso))
+      indComp$idCom <- paste0("Compromiso ", 1:nrow(indComp))
+      df <- df %>% left_join(indComp)
+      df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo, c("Sí" = 4, "No" = 2)))
+      df <- df %>% select(idCom, value, "estrategias_grupoNucleo", everything())
     }
-
+ 
     req(id_viz())
     if (id_viz() != "donut") {
       if (nrow(df) != 0) {
@@ -600,6 +613,7 @@ server <- function(input, output, session) {
     req(id_viz())
     fjs <- NULL
     order_s <- NULL
+    #order_stacked <- NULL
     yMax <- NULL
     yEnabled <- TRUE
     id_button <- last_indicator()
@@ -615,12 +629,13 @@ server <- function(input, output, session) {
     grid_y_enabled <- TRUE
     colorDonut <- NULL
     legendShow <- TRUE
+    orderAxis <- NULL
     if (id_button == "avance") {
       tx <- "Fecha de inicio: {fecha_inicio} <br/> Fecha de finalización: {fecha_finalizacion} <br/>{hito}<br/><b>{avance}: {porcentaje}%</b>"
       yMax <- 100
-      reverse_axis <- TRUE
+      reverse_axis <- FALSE#TRUE
       yEnabled <- TRUE
-      order_s <- sort(unique(df$avance))
+      order_s <- rev(unique(df$avance))
       showLabels <- TRUE
       colors <- c("#0076b7", "#293662", "#0076b7", "#293662")
       if (length(order_s) == 1) {
@@ -641,7 +656,7 @@ server <- function(input, output, session) {
       cursor <- "pointer"
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
-      fjs <- JS("function () {var arreglo = ['','Sí', '' , 'No'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['','No', '' , 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "entidad_responsable") {
       tx <- "{hito}<br/> <b>La entidad responsable ha responido con sus responsabilidades con la contraparte: {entidad_responsable} </b>  <br/><br/>Da click para más información"
       order_s <- order_s <- c("Contraparte", "Grupo Núcleo")
@@ -649,19 +664,19 @@ server <- function(input, output, session) {
       cursor <- "pointer"
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
-      fjs <- JS("function () {var arreglo = ['','Sí', '', 'No'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     }  else if (id_button == "contraparte_grupoNucleo") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo: {contraparte_responsable} </b>  <br/>"
       colors <- c( "#78dda0")
       cursor <- "pointer"
       yMax <- 4
-      fjs <- JS("function () {var arreglo = ['','Sí', '', 'No'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "entidad_grupoNucleo") {
       tx <- "{hito}<br/> <b>La entidad ha respondido con sus responsabilidades con el Grupo Núcleo: {entidad_responsable} </b>  <br/>"
       colors <- c("#78dda0")
       cursor <- "pointer"
       yMax <- 4
-      fjs <- JS("function () {var arreglo = ['','Sí', '', 'No'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "actividades") {
       tx <- "{hito} <br/> <b>Número de actividades {actividades}</b> <br/><br/>Da click para más información"
       colors  <- "#293662"
@@ -709,11 +724,12 @@ server <- function(input, output, session) {
       }
       #colors <- c("#293662", "#78dda0")
     } else if (id_button == "estrategias_grupoNucleo") {
-      tx <- "{hito}<br/> <b>El compromiso cuenta con una estrategia de comunicación cocreada: {estrategias_grupoNucleo} </b>  <br/>"
+      tx <- "{compromiso} <br/> <b>Hitos con estrategias de comunicación: </b><br/>{hito}<br/> <b>El compromiso cuenta con una estrategia de comunicación cocreada: {estrategias_grupoNucleo} </b>  <br/>"
       colors <- c("#0076b7", "#78dda0")
       yMax <- 4
-      colorDonut <- "value"
-      fjs <- JS("function () {var arreglo = ['','Sí', '', 'No'];return arreglo[this.value];}")
+      #colorDonut <- "value"
+      orderAxis <- paste0("Compromiso ", 1:10)
+      fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else {
       tx <- return()
     }
@@ -721,6 +737,8 @@ server <- function(input, output, session) {
       tooltip = tx,
       formatterJS = fjs,
       orderLegend = order_s,
+      #order_stacked = order_stacked,
+      order = orderAxis,
       yMax = yMax,
       palette_type = "categorical",
       labelsRotationY = labelsRotationY,
@@ -747,7 +765,6 @@ server <- function(input, output, session) {
     if (actual_but$active == "table") return()
 
 
-
     format_x_js <- NULL
     axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
     #print(axisColor)
@@ -762,7 +779,10 @@ server <- function(input, output, session) {
     if (last_indicator() %in% c("avance", "sectores")) {
       graph_type = "stacked"
     }
-    #print(data_select())
+    
+    
+    
+    print(data_select())
     list(
       data = data_select(),
       plot_margin_bottom = opts_plot()$marginBottom,
@@ -772,6 +792,8 @@ server <- function(input, output, session) {
       color_by = opts_plot()$colorDonut,
       legend_show = opts_plot()$legendShow,
       orientation = "hor",
+      drop_na = TRUE,
+      agg = "mean",
       caption = "Fecha de actualización: Octubre 22 del 2021",
       legend_y_position = -30,
       hor_title = " ",
@@ -784,6 +806,8 @@ server <- function(input, output, session) {
       background_color = "transparent",
       y_max = opts_plot()$yMax,
       order_legend = opts_plot()$orderLegend,
+      #order_stacked = opts_plot()$order_stacked,
+      order = opts_plot()$order,
       y_axis_align = "right",
       formatter_x_js = format_x_js,
       formatter_js = opts_plot()$formatterJS,
@@ -853,7 +877,7 @@ server <- function(input, output, session) {
     tryCatch({
       req(viz_type())
       req(opts_viz())
-      print(opts_viz())
+      #print(opts_viz())
       do.call(viz_type(), opts_viz())
     }, error = function(con) {
       return()
@@ -952,6 +976,7 @@ server <- function(input, output, session) {
     req(data_filter())
     #if (actual_but$active != "table") return()
     df <- data_filter() %>% dplyr::select(-hito_id, -cmp_esperado)
+  
     df_dic <- data.frame(id = names(df))
     df_dic <- df_dic %>% left_join(indicadores_dic)
     tooltip_names <- paste0("'",df_dic$label_original, "'", collapse = ",")
@@ -1019,8 +1044,11 @@ server <- function(input, output, session) {
     }
 
     if (id_viz() == "bar") {
+      req(last_indicator())
+      tx <- HTML("<div style=background:#cccccc;width:250px;max-width:auto;padding:2px;margin-left:2%;font-weight:500;> <span style=color:#109a4f;>Hitos finalizados</span><span style=margin-left:3%;>Hitos en desarrollo</span></div>")
+      if (last_indicator() == "estrategias_grupoNucleo") tx <- br()
       div (
-        HTML("<div style=background:#cccccc;width:250px;max-width:auto;padding:2px;margin-left:2%;font-weight:500;> <span style=color:#109a4f;>Hitos finalizados</span><span style=margin-left:3%;>Hitos en desarrollo</span></div>"),
+        tx,
         v
       )
     } else {
@@ -1134,7 +1162,8 @@ También puedes explorar la tabla de avances del Plan con el símbolo de la cuad
     }
 
     if (indicator_choose() == "estrategias_grupoNucleo") {
-      tx <- "Sin detalle"
+      tx <- HTML("<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
+      Esta gráfica muestra si existen o no estrategias de comunicación cocreadas en cada compromiso.")
     }
 
     div(class = "bodyModal" ,tx)
@@ -1192,13 +1221,10 @@ También puedes explorar la tabla de avances del Plan con el símbolo de la cuad
                   Permite determinar si a partir del cumplimiento del hito se están cumpliendo algunas iniciativas internacionales relacionados con el compromiso.
           ")
     }
-    if (indicator_choose() == "estrategias") {
-      tx <- HTML("<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
-                 Permite determinar si el compromiso está acompañado de una estrategia de comunicación cocreada.
-          ")
-    }
     if (indicator_choose() == "estrategias_grupoNucleo") {
-      tx <- "Sin detalle"
+      tx <-HTML("<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
+                Esta medición se realiza por parte de Grupo Núcleo, para conocer las estrategias de Comunicación cocreadas en cada uno de los compromisos."
+      )
     }
 
     div(class = "bodyModal" ,tx)
