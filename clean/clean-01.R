@@ -39,7 +39,7 @@ data_all <- contrapartes %>% full_join(entidades)
 data_all$avance[is.na(data_all$avance)] <- 0
 #data_all <- data_all %>% distinct(compromiso, hito, .keep_all = TRUE)
 
-ej <- data_all %>% filter(compromiso %in% "Co-diseño de la hoja de ruta para la implementación del Estándar EITI para mejorar la transparencia en las industrias extractivas en Ecuador (petróleo, gas y minería)")
+#ej <- data_all %>% filter(compromiso %in% "Co-diseño de la hoja de ruta para la implementación del Estándar EITI para mejorar la transparencia en las industrias extractivas en Ecuador (petróleo, gas y minería)")
 # Compromisos -------------------------------------------------------------
 
 
@@ -86,39 +86,39 @@ compromisos_toJoin <- order_data %>% left_join(compromisos2)
 # 
 
 
-library(hgchmagic)
-dd <- compromisos %>% left_join(entidades)
-#dd$avance[is.na(dd$avance)] <- 0
-df_1 <- data.frame(id = "Cumplimiento",name = "Porcentaje total de cumplimiento del Plan",b = "aaa jas", porcentaje = mean(dd$avance, na.rm = TRUE))
-df_2 <- data.frame(id = "No cumplimiento",name = "Porcentaje que falta para el cumplimiento total del Plan",b = "aaa jas",  porcentaje =  100 - mean(dd$avance, na.rm = TRUE))
-df <- df_1 %>% bind_rows(df_2)
-df$name <- as.character(df$name)
-df$b <- as.character(df$b)
-df <- df %>% select(id, b, porcentaje, name)
-df$porcentaje <- round(df$porcentaje, 2)
-h1 <- hgch_bar_CatCatNum(df,
-                         reversedYaxis = TRUE,
-                         orientation = "hor",
-                         graph_type = "stacked",
-                         y_max = 100,
-                         suffix = "%",
-                         hor_title = " ",
-                         ver_title = " ",
-                         dataLabels_show = TRUE,
-                         dataLabels_template = "{series.name}: {y}% <br/>",
-                         grid_y_enabled = FALSE,
-                         grid_x_enabled = FALSE,
-                         #order = c("Cumplimiento", "No cumplimiento"),
-                         #order_legend = c("Cumplimiento", "No cumplimiento"),
-                         palette_colors = c("#fdd60e", "#ff7f00"),
-                         tooltip = "{name}: {porcentaje}%",
-                         background_color = "transparent",
-                         dataLabels_text_outline = FALSE,
-                         dataLabels_size = 15,
-                         legend_show = FALSE
-                         )%>%
-hc_chart(height = 200)
-h1
+# library(hgchmagic)
+# dd <- compromisos %>% left_join(entidades)
+# dd$avance[is.na(dd$avance)] <- 0
+# df_1 <- data.frame(id = "Cumplimiento",name = "Porcentaje total de cumplimiento del Plan",b = "aaa jas", porcentaje = mean(dd$avance, na.rm = TRUE))
+# df_2 <- data.frame(id = "Por ejecutar",name = "Porcentaje que falta para el cumplimiento total del Plan",b = "aaa jas",  porcentaje =  100 - mean(dd$avance, na.rm = TRUE))
+# df <- df_1 %>% bind_rows(df_2)
+# df$name <- as.character(df$name)
+# df$b <- as.character(df$b)
+# df <- df %>% select(id, b, porcentaje, name)
+# df$porcentaje <- round(df$porcentaje, 2)
+# h1 <- hgch_bar_CatCatNum(df,
+#                          reversedYaxis = TRUE,
+#                          orientation = "hor",
+#                          graph_type = "stacked",
+#                          y_max = 100,
+#                          suffix = "%",
+#                          hor_title = " ",
+#                          ver_title = " ",
+#                          dataLabels_show = TRUE,
+#                          dataLabels_template = "{series.name}: {y}% <br/>",
+#                          grid_y_enabled = FALSE,
+#                          grid_x_enabled = FALSE,
+#                          #order = c("Cumplimiento", "No cumplimiento"),
+#                          #order_legend = c("Cumplimiento", "No cumplimiento"),
+#                          palette_colors = c("#fdd60e", "#ff7f00"),
+#                          tooltip = "{name}: {porcentaje}%",
+#                          background_color = "transparent",
+#                          dataLabels_text_outline = FALSE,
+#                          dataLabels_size = 15,
+#                          legend_show = FALSE
+#                          )%>%
+# hc_chart(height = 200)
+# h1
 # htmlwidgets::saveWidget(h1, "porcentaje_cumplimiento.html", background = "transparent")
 #
 #
@@ -187,11 +187,12 @@ grupoNucleo <- grupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "Indicado
                                                 "compromiso" = "Compromiso",
                                                 "fecha_registro_grupoNucleo" = "Fecha de registro"))
 
+#### correr getUrl
+unique(grupoNucleo$hito)
+grupoNucleoJoin <- rbind(grupoNucleo, info)
 
 
-
-
-data_fin <- data_all2 %>% left_join(grupoNucleo)
+data_fin <- data_all2 %>% full_join(grupoNucleoJoin)
 
 write_csv(data_fin, "all_data.csv", na = "")
 write_rds(data_fin, "all_data.rds")

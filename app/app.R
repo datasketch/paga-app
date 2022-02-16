@@ -512,7 +512,7 @@ server <- function(input, output, session) {
       df <- df %>% plyr::rename(c("estado" = "Entidad responsable", "estado_contraparte" = "Contraparte", "estado_grupoNucleo" = "Grupo Nucleo"))
       df <- df %>% gather("tipo", "estado", c("Entidad responsable", "Contraparte", "Grupo Nucleo"))
       df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 4, "Ejecución" = 3, "Planificación" = 2, "Definición" = 1, "Detenido" = 0))
-      df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito)
+      df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito) %>% tidyr::drop_na(estado)
     } else if (last_indicator() %in% "avance") {
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
       df$avance[is.na(df$avance)] <- 0
@@ -572,6 +572,8 @@ server <- function(input, output, session) {
     } else if (last_indicator() %in% "relacion_internacional") {
       df <- df[,c("relacion_internacional_descripcion", "hito_id", var_s, "cmp_esperado", "hito", "relacion_internacional_justificacion")]
       df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",")
+      df$relacion_internacional_descripcion <- trimws(df$relacion_internacional_descripcion)
+      print(unique(df$hito_id))
       if (id_viz() == "donut") {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
@@ -603,6 +605,7 @@ server <- function(input, output, session) {
         }
       }
     }
+    #print(df)
     df
 
   })
@@ -613,7 +616,7 @@ server <- function(input, output, session) {
     req(id_viz())
     fjs <- NULL
     order_s <- NULL
-    #order_stacked <- NULL
+    order_stacked <- NULL
     yMax <- NULL
     yEnabled <- TRUE
     id_button <- last_indicator()
@@ -629,13 +632,16 @@ server <- function(input, output, session) {
     grid_y_enabled <- TRUE
     colorDonut <- NULL
     legendShow <- TRUE
+    legendRev <- FALSE
     orderAxis <- NULL
     if (id_button == "avance") {
       tx <- "Fecha de inicio: {fecha_inicio} <br/> Fecha de finalización: {fecha_finalizacion} <br/>{hito}<br/><b>{avance}: {porcentaje}%</b>"
       yMax <- 100
       reverse_axis <- FALSE#TRUE
       yEnabled <- TRUE
-      order_s <- rev(unique(df$avance))
+      order_stacked <- rev(unique(df$avance))
+      order_s <-  rev(unique(df$avance))
+      legendRev <- TRUE
       showLabels <- TRUE
       colors <- c("#0076b7", "#293662", "#0076b7", "#293662")
       if (length(order_s) == 1) {
@@ -737,7 +743,7 @@ server <- function(input, output, session) {
       tooltip = tx,
       formatterJS = fjs,
       orderLegend = order_s,
-      #order_stacked = order_stacked,
+      order_stacked = order_stacked,
       order = orderAxis,
       yMax = yMax,
       palette_type = "categorical",
@@ -752,7 +758,8 @@ server <- function(input, output, session) {
       showLabels = showLabels,
       grid_y_enabled =  grid_y_enabled,
       colorDonut  = colorDonut,
-      legendShow = legendShow
+      legendShow = legendShow,
+      legendRev = legendRev
     )
   })
 
@@ -782,7 +789,7 @@ server <- function(input, output, session) {
     
     
     
-    print(data_select())
+    #print(data_select())
     list(
       data = data_select(),
       plot_margin_bottom = opts_plot()$marginBottom,
@@ -806,13 +813,14 @@ server <- function(input, output, session) {
       background_color = "transparent",
       y_max = opts_plot()$yMax,
       order_legend = opts_plot()$orderLegend,
-      #order_stacked = opts_plot()$order_stacked,
+      order_stacked = opts_plot()$order_stacked,
       order = opts_plot()$order,
       y_axis_align = "right",
       formatter_x_js = format_x_js,
       formatter_js = opts_plot()$formatterJS,
       dataLabels_show = opts_plot()$showLabels,
       label_wrap_legend = 150,
+      legend_reversed = opts_plot()$legendRev,
       cursor = opts_plot()$cursor,
       legend_align = "left",
       caption_align = "right",
