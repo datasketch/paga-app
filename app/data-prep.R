@@ -46,7 +46,7 @@ dataContraparte <- dataContraparte %>% dplyr::rename(c( "estado_contraparte" = "
 dataContraparte <- dataContraparte[,c(-1,-2,-3)]
 dataContraparte <- dataContraparte %>% dplyr::inner_join(dicHitos) %>% dplyr::select(-idF)
 
-l <- map(1:ncol(dataContraparte), function(i) {
+l <- purrr::map(1:ncol(dataContraparte), function(i) {
   dataContraparte[[i]] <<-  trimws( gsub("\n", " ",dataContraparte[[i]]))
   dataContraparte[[i]][dataContraparte[[i]] == ""] <<- NA
 })
@@ -94,7 +94,7 @@ dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
 dataEntidades <- dataEntidades[,c(-1,-2,-3)]
 
 dataEntidades <- dataEntidades %>% dplyr::inner_join(dicHitos) %>% dplyr::select(-idF)
-l <- map(1:ncol(dataEntidades), function(i) {
+l <- purrr::map(1:ncol(dataEntidades), function(i) {
   dataEntidades[[i]] <<-  trimws(gsub("\n", " ",dataEntidades[[i]]))
   dataEntidades[[i]][dataEntidades[[i]] == ""] <<- NA
 })
@@ -142,7 +142,7 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
 #compromisos$tematica <- trimws(compromisos$tematica)
 
 compromisos <- compromisos %>% dplyr::select(-Id, -CreatedAt, -UpdatedAt)
-l <- map(1:ncol(compromisos), function(i) {
+l <- purrr::map(1:ncol(compromisos), function(i) {
   compromisos[[i]] <<- trimws(gsub("  ", " ",gsub("\t ", "", compromisos[[i]])))
 })
 unique(compromisos$tematica)
@@ -202,7 +202,7 @@ dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "
 
 dataGrupoNucleo <- dataGrupoNucleo[,c(-1,-2,-3)]
 dataGrupoNucleo <- dataGrupoNucleo %>% inner_join(dicHitos) %>% dplyr::select(-idF)
-l <- map(1:ncol(dataGrupoNucleo), function(i) {
+l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
   dataGrupoNucleo[[i]] <<- trimws(gsub("\n", " ", trimws(dataGrupoNucleo[[i]])))
 })
 
@@ -216,6 +216,4 @@ data_fin <- data_all2 %>% dplyr::full_join(dataGrupoNucleo)
 data_fin$avance <- as.numeric(data_fin$avance)
 data_fin$actividades <- as.numeric(data_fin$actividades)
 data_fin$participantes <- as.numeric(data_fin$participantes)
-
-
 readr::write_rds(data_fin, "data/all_data.rds")

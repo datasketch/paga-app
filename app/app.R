@@ -225,7 +225,7 @@ scroll STYLES
 
 
 "
-
+source("data-prep.R")
 indicadores_data <- read_rds("data/all_data.rds")
 indicadores_data$hito_id <- str_extract(indicadores_data$hito, "Hito [0-9]")
 #indicadores_data$fecha_finalizacion[is.na(indicadores_data$fecha_finalizacion)] <- "2021-10-20"
@@ -277,7 +277,6 @@ ui <- panelsPage(
           withLoader(
             uiOutput("final_viz"),
             type = "html", loader = "loader4")
-          #verbatimTextOutput("aver")
         ),# 
         footer =  div(class = "panel-header",
                       uiOutput("viz_icons"), 
@@ -285,9 +284,6 @@ ui <- panelsPage(
                           actionButton("info_add", "DESCRIPCIÓN DE ESTA GRÁFICA"),
                           actionButton("ficha_add", "FICHA TÉCNICA DEL INDICADOR")
                       )
-                      # tags$a(
-                      #   href="https://www.datasketch.co", target="blank",
-                      #   img(src='ds_logo.png', align = "right", width = 150, height = 110))
         )
   )
 )
@@ -390,20 +386,20 @@ server <- function(input, output, session) {
   
   
   actual_but <- reactiveValues(active = NULL)
-
+  
   observe({
     if (is.null(possible_viz())) return()
     viz_rec <- possible_viz()
     if (is.null(input$viz_selection)) return()
-
+    
     if (input$viz_selection %in% viz_rec) {
       actual_but$active <- input$viz_selection
     } else {
       actual_but$active <- viz_rec[1]
     }
   })
-
-
+  
+  
   output$viz_icons <- renderUI({
     req(possible_viz())
     suppressWarnings(
@@ -415,14 +411,14 @@ server <- function(input, output, session) {
                        active = actual_but$active)
     )
   })
-
-
+  
+  
   id_viz <- reactive({
     id_viz <- actual_but$active
     if (is.null(id_viz)) id_viz <- "bar"
     id_viz
   })
-
+  
   last_indicator <- reactive({
     req(indicator_choose())
     l_i <- indicator_choose()
@@ -432,7 +428,7 @@ server <- function(input, output, session) {
     }
     l_i
   })
-
+  
   # data_intial <- reactive({
   #   req(indicadores_data)
   #   req(last_indicator())
@@ -460,7 +456,7 @@ server <- function(input, output, session) {
   #   df
   #
   # })
-
+  
   output$commitment <- renderUI({
     req(indicadores_data)
     req(last_indicator())
@@ -468,18 +464,18 @@ server <- function(input, output, session) {
     
     selectizeInput("compromiso_id", "COMPROMISO", unique(indicadores_data$compromiso))
   })
-
-
-
-
+  
+  
+  
+  
   data_filter <- reactive({
     req(indicadores_data)
     req(last_indicator())
     if (is.null(input$compromiso_id)) return()
-
+    
     df <- indicadores_data %>%
       filter(compromiso %in% input$compromiso_id)
-
+    
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       df <- indicadores_data
     }
@@ -487,8 +483,8 @@ server <- function(input, output, session) {
     
     df
   })
-
-
+  
+  
   output$addFilters <- renderUI({
     req(data_filter())
     req(last_indicator())
@@ -498,17 +494,17 @@ server <- function(input, output, session) {
     if (!(last_indicator() %in% c( "sectores", "relacion_internacional"))) return()
     selectizeInput("hitoSel",  "HITO DE INTERES", unique(df$hito))
   })
-
+  
   data_select <- reactive({
     req(data_filter())
     req(last_indicator())
     df <- data_filter()
     var_s <- last_indicator()
     #if (last_indicator() %in% c( "contraparte_grupoNucleo", "entidad_grupoNucleo")) return()
-
+    
     if (last_indicator() %in% "estado") {
       df <- df[,c(var_s, "hito_id", "estado_contraparte", "estado_grupoNucleo", "cmp_esperado", "hito")]
-
+      
       df <- df %>% plyr::rename(c("estado" = "Entidad responsable", "estado_contraparte" = "Contraparte", "estado_grupoNucleo" = "Grupo Nucleo"))
       df <- df %>% gather("tipo", "estado", c("Entidad responsable", "Contraparte", "Grupo Nucleo"))
       df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 4, "Ejecución" = 3, "Planificación" = 2, "Definición" = 1, "Detenido" = 0))
@@ -582,7 +578,7 @@ server <- function(input, output, session) {
     } else {
       df <- df[,c("hito_id", var_s, "cmp_esperado", "hito")]
     }
-
+    
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       df <- indicadores_data %>% drop_na(estrategias_grupoNucleo)
       indComp <- data.frame(compromiso = unique(df$compromiso))
@@ -591,14 +587,14 @@ server <- function(input, output, session) {
       df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo, c("Sí" = 4, "No" = 2)))
       df <- df %>% select(idCom, value, "estrategias_grupoNucleo", everything())
     }
- 
+    
     req(id_viz())
     if (id_viz() != "donut") {
       if (nrow(df) != 0) {
         df_hitos <- data_filter() %>% select(hito_id, hito) %>% distinct()
-
+        
         ind_hito <- setdiff(df_hitos$hito_id, unique(df$hito_id))
-
+        
         if (!(identical(ind_hito, character()))) {
           df_hitos <- df_hitos %>% filter(hito_id %in% ind_hito)
           df <- df %>% bind_rows(df_hitos)
@@ -607,10 +603,10 @@ server <- function(input, output, session) {
     }
     #print(df)
     df
-
+    
   })
-
-
+  
+  
   opts_plot <- reactive({
     req(data_select())
     req(id_viz())
@@ -762,16 +758,16 @@ server <- function(input, output, session) {
       legendRev = legendRev
     )
   })
-
-
+  
+  
   opts_viz <- reactive({
     req(data_select())
     req(last_indicator())
     req(opts_plot())
     if (nrow(data_select()) == 0) return()
     if (actual_but$active == "table") return()
-
-
+    
+    
     format_x_js <- NULL
     axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
     #print(axisColor)
@@ -781,7 +777,7 @@ server <- function(input, output, session) {
       format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color:#109a4f !important;fill:#109a4f !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
     #print(format_x_js)
-
+    
     graph_type <- "grouped"
     if (last_indicator() %in% c("avance", "sectores")) {
       graph_type = "stacked"
@@ -833,16 +829,16 @@ server <- function(input, output, session) {
       clickFunction = opts_plot()$clickFc
     )
   })
-
-
+  
+  
   viz_type <- reactive({
     req(last_indicator())
     req(id_viz())
     if (actual_but$active == "table") return()
     viz <- "CatCatNum"
     showLabels <- FALSE
-
-
+    
+    
     if (last_indicator() %in% c("actividades", "participantes", "estrategias_grupoNucleo")) {
       viz <- "CatNum"
     }
@@ -852,14 +848,14 @@ server <- function(input, output, session) {
     if (id_viz() == "donut") {
       viz <- "Cat"
     }
-
+    
     type_viz <- actual_but$active
     viz_sel <- paste0("hgch_", type_viz, "_", viz)
     #print(viz_sel)
     #print(viz_sel)
     viz_sel
   })
-
+  
   hgch_viz <- reactive({
     req(input$compromiso_id)
     req(viz_type())
@@ -871,16 +867,16 @@ server <- function(input, output, session) {
       axisInd <- unique(axisInd$hito_id)
       data_mdf$hito_id <- ifelse(data_mdf$hito_id %in% axisInd, data_mdf$hito_id, paste0(data_mdf$hito_id, "*"))
     }
-
+    
     mdf_opts <- mdf_opts[-(grep("formatter_x_js", names(mdf_opts)))]
     mdf_opts$title <- input$compromiso_id
     mdf_opts$subtitle <- "Hitos en desarrollo*"
     mdf_opts$data <- data_mdf
     do.call(viz_type(), mdf_opts)
   })
-
-
- 
+  
+  
+  
   output$hgch_viz <- renderHighchart({
     tryCatch({
       req(viz_type())
@@ -892,10 +888,10 @@ server <- function(input, output, session) {
     }
     )
   })
-
-
-
-
+  
+  
+  
+  
   textModal <- reactive({
     # if (last_indicator() != "actividades") {
     #   df <- df %>% filter(tipo %in% input$hcClicked$cat, hito %in% input$hcClicked$id)
@@ -905,13 +901,13 @@ server <- function(input, output, session) {
     if (is.null(input$hcClicked)) return()
     req(data_filter())
     df <- data_filter()
-
-
+    
+    
     hito_select <- gsub("<br/>", " ", input$hcClicked$id)
     hito_select <- gsub("co- creación", "co-creación", hito_select)
     df <- df %>% filter(hito_id %in% hito_select)
-
-
+    
+    
     if (last_indicator() == "actividades") {
       tx <- div(class = "bodyModal",
                 HTML(
@@ -923,7 +919,7 @@ server <- function(input, output, session) {
                 )
       )
     }
-
+    
     if (last_indicator() == "resultados") {
       tx <- div(class = "bodyModal",
                 HTML(
@@ -936,13 +932,13 @@ server <- function(input, output, session) {
                 )
       )
     }
-
+    
     if (last_indicator() %in% c("contraparte_responsable")) {
       tx <- div(class = "bodyModal",
                 "Sin información de la justificación de cumplimiento de responsabilidades"
       )
     }
-
+    
     if (last_indicator() %in% c("entidad_responsable")) {
       tx <- div(class = "bodyModal",
                 HTML(
@@ -954,42 +950,35 @@ server <- function(input, output, session) {
                 )
       )
     }
-
+    
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       tx <- "Sin detalle"
     }
-
+    
     tx
-
-
+    
+    
   })
-
+  
   output$message_modal<- renderUI({
     textModal()
   })
-
+  
   observeEvent(input$hcClicked, {
     shinypanels::showModal("modal_extra_info")
   })
-
-  # output$aver <- renderPrint({
-  #   list(
-  #     textModal(),
-  #     data_filter()$hito
-  #   )
-  # })
-
-
+  
+  
   output$table_view <- renderDataTable({
     req(data_filter())
     #if (actual_but$active != "table") return()
     df <- data_filter() %>% dplyr::select(-hito_id, -cmp_esperado)
-  
+    
     df_dic <- data.frame(id = names(df))
     df_dic <- df_dic %>% left_join(indicadores_dic)
     tooltip_names <- paste0("'",df_dic$label_original, "'", collapse = ",")
-
-
+    
+    
     headerCallback <- paste0(c(
       "function(thead, data, start, end, display){",
       "  var tooltips = [", tooltip_names ,"];",
@@ -1023,9 +1012,9 @@ server <- function(input, output, session) {
                                "}")
                            )) %>%
       DT::formatStyle( 0 , target= 'row',color = '#0A446B', fontSize ='13px', lineHeight='15px')
-
-
-
+    
+    
+    
     dep1 <- htmltools::htmlDependency(
       "datatables.mark", "2.0.1",
       src = c(href = "https://cdn.datatables.net/plug-ins/1.10.19/features/mark.js"),
@@ -1037,20 +1026,20 @@ server <- function(input, output, session) {
     dtable$dependencies <- c(dtable$dependencies, list(dep1, dep2))
     dtable
   })
-
-
-
+  
+  
+  
   output$final_viz <- renderUI({
-
+    
     if (is.null(id_viz())) return()
     if (is.null(data_select())) return("No hay datos disponibles")
     if (id_viz() == "table") {
       v <- dataTableOutput("table_view", width = 900)
-
+      
     } else {
-      v <- highchartOutput("hgch_viz", height = 400)
+      v <- highchartOutput("hgch_viz", height = 500)
     }
-
+    
     if (id_viz() == "bar") {
       req(last_indicator())
       tx <- HTML("<div style=background:#cccccc;width:250px;max-width:auto;padding:2px;margin-left:2%;font-weight:500;> <span style=color:#109a4f;>Hitos finalizados</span><span style=margin-left:3%;>Hitos en desarrollo</span></div>")
@@ -1062,30 +1051,30 @@ server <- function(input, output, session) {
     } else {
       v
     }
-
-
+    
+    
   })
-
+  
   output$descargas <- renderUI({
     if (is.null(actual_but$active)) return()
     if (actual_but$active != "table") {
       div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 20px;",
-      downloadImageUI("download_viz", dropdownLabel = "Descargar visualización", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
-    #} else {
-      downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
-    )
+           downloadImageUI("download_viz", dropdownLabel = "Descargar visualización", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
+           #} else {
+           downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
+      )
     } else {
       downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
     }
   })
-
+  
   downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
   downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
-
-
+  
+  
   textButtonInfo <- reactive({
     req(indicator_choose())
-
+    
     if (indicator_choose() == "avance") {
       tx <- HTML("<b>Indicador 1.</b><br/><br/><br/>
 Esta gráfica refleja el porcentaje de cumplimiento de los hitos de cada uno de los compromisos.  Para ver cada compromiso dar clic en la barra del nombre del compromiso y seleccionar. <br/><br/>
@@ -1168,29 +1157,29 @@ También puedes explorar la tabla de avances del Plan con el símbolo de la cuad
 
 ")
     }
-
+    
     if (indicator_choose() == "estrategias_grupoNucleo") {
       tx <- HTML("<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
       Esta gráfica muestra si existen o no estrategias de comunicación cocreadas en cada compromiso.")
     }
-
+    
     div(class = "bodyModal" ,tx)
   })
-
-
+  
+  
   output$info_plots <- renderUI({
     textButtonInfo()
   })
-
+  
   observeEvent(input$info_add, {
     shinypanels::showModal("modal_viz_info")
   })
-
-
-
+  
+  
+  
   textButtonFicha <- reactive({
     req(indicator_choose())
-
+    
     if (indicator_choose() == "avance") {
       tx <- HTML("<b>1. Porcentaje de avance de cada hito:</b><br/><br/><br/>
                   Permite conocer el porcentaje de avance de cada hito por aspectos tangibles y actividades cumplidas por la entidad responsable. Así mismo, permite  realizar reportes periódicos de avances aún cuando el compromiso no se haya completado  al 100%
@@ -1234,19 +1223,19 @@ También puedes explorar la tabla de avances del Plan con el símbolo de la cuad
                 Esta medición se realiza por parte de Grupo Núcleo, para conocer las estrategias de Comunicación cocreadas en cada uno de los compromisos."
       )
     }
-
+    
     div(class = "bodyModal" ,tx)
   })
-
-
+  
+  
   output$info_ficha <- renderUI({
     textButtonFicha()
   })
-
+  
   observeEvent(input$ficha_add, {
     shinypanels::showModal("modal_ficha_info")
   })
-
+  
 }
 
 shinyApp(ui, server)
