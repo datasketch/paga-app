@@ -225,17 +225,7 @@ scroll STYLES
 
 
 "
-source("data-prep.R")
-indicadores_data <- read_rds("data/all_data.rds")
-indicadores_data$hito_id <- str_extract(indicadores_data$hito, "Hito [0-9]")
-#indicadores_data$fecha_finalizacion[is.na(indicadores_data$fecha_finalizacion)] <- "2021-10-20"
 
-# indicadores_data$hito <- gsub("\\.", "",indicadores_data$hito)
-# indicadores_data$hito <- paste0(indicadores_data$hito, ".")
-# 
-# indicadores_data$hito_id <-gsub("\\s*\\:[^\\)]+\\.","", indicadores_data$hito)
-#indicadores_data$fecha_finalizacion <- gsub("\\/","-", indicadores_data$fecha_finalizacion)
-indicadores_data$cmp_esperado <- ifelse(lubridate::ymd(indicadores_data$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 indicadores_dic <- read_rds("data/all_dic.rds")
 indicadores_dic <- indicadores_dic %>% distinct(id, .keep_all = TRUE)
 
@@ -290,7 +280,22 @@ ui <- panelsPage(
 
 server <- function(input, output, session) {
   
+
+  dataOrigin <- "data/all_data.rds"
   
+  data <- reactivePoll(1000, session,
+                  
+                       checkFunc = function() {
+                         if (file.exists(dataOrigin))
+                           file.info(dataOrigin)$mtime[1]
+                         else
+                           shinyalert(title = "file",text = "Archivo no encontrado")
+                       },
+                  
+                       valueFunc = function() {
+                         source("data-prep.R")$value
+                       }
+  )
   
   indicators_list <- reactive({
     
@@ -429,55 +434,29 @@ server <- function(input, output, session) {
     l_i
   })
   
-  # data_intial <- reactive({
-  #   req(indicadores_data)
-  #   req(last_indicator())
-  #   df <- indicadores_data
-  #
-  #
-  #   # if (last_indicator() == "estado") {
-  #   #   df <- indicadores_data[!(is.na(indicadores_data$estado) & is.na(indicadores_data$estado_contraparte)),]
-  #   # }
-  #   # if (last_indicator() == "resultados") {
-  #   #   df <- indicadores_data %>% drop_na(resultados)
-  #   # }
-  #   # if (last_indicator() %in% "contraparte_responsable") {
-  #   #   df <- indicadores_data %>% drop_na(contraparte_responsable)
-  #   # }
-  #   # if (last_indicator() %in% "entidad_responsable") {
-  #   #   df <- indicadores_data %>% drop_na(entidad_responsable)
-  #   # }
-  #   # if (!(last_indicator() %in% c("estado", "resultados"))) {
-  #   #   df <- indicadores_data %>%
-  #   #     drop_na(estado)
-  #   # }
-  #
-  #
-  #   df
-  #
-  # })
+
   
   output$commitment <- renderUI({
-    req(indicadores_data)
+    req(data())
     req(last_indicator())
     if (last_indicator() == "estrategias_grupoNucleo") return()
     
-    selectizeInput("compromiso_id", "COMPROMISO", unique(indicadores_data$compromiso))
+    selectizeInput("compromiso_id", "COMPROMISO", unique(data()$compromiso))
   })
   
   
   
   
   data_filter <- reactive({
-    req(indicadores_data)
+    req(data())
     req(last_indicator())
     if (is.null(input$compromiso_id)) return()
     
-    df <- indicadores_data %>%
+    df <- data() %>%
       filter(compromiso %in% input$compromiso_id)
     
     if (last_indicator() %in% "estrategias_grupoNucleo") {
-      df <- indicadores_data
+      df <- data()
     }
     
     
@@ -580,7 +559,7 @@ server <- function(input, output, session) {
     }
     
     if (last_indicator() %in% "estrategias_grupoNucleo") {
-      df <- indicadores_data %>% drop_na(estrategias_grupoNucleo)
+      df <- data() %>% drop_na(estrategias_grupoNucleo)
       indComp <- data.frame(compromiso = unique(df$compromiso))
       indComp$idCom <- paste0("Compromiso ", 1:nrow(indComp))
       df <- df %>% left_join(indComp)
