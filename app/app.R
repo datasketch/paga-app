@@ -280,23 +280,30 @@ ui <- panelsPage(
 
 server <- function(input, output, session) {
   
-
+  
+  #  Actualizacion de que los datos -----------------------------------------
+  
+  
   dataOrigin <- "data/all_data.rds"
   
   data <- reactivePoll(1000, session,
-                  
+                       
                        checkFunc = function() {
                          if (file.exists(dataOrigin))
                            file.info(dataOrigin)$mtime[1]
                          else
                            shinyalert(title = "file",text = "Archivo no encontrado")
                        },
-                  
+                       
                        valueFunc = function() {
                          source("data-prep.R")$value
                        }
   )
   
+  
+  
+  # Lista predeterminada de indicadores -------------------------------------
+  ### Creacion del menu de indicadores
   indicators_list <- reactive({
     
     basicos <- data.frame(id = c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "relacion_internacional", "estrategias_grupoNucleo"),
@@ -318,7 +325,7 @@ server <- function(input, output, session) {
     l
   })
   
-  
+  # boton seleccionado por defecto  
   indicator_choose <- reactive({
     last_btn <- input$last_click
     if (is.null(last_btn)) last_btn <- "avance"
@@ -340,6 +347,7 @@ server <- function(input, output, session) {
     tx
   })
   
+  # selector particular de radio botones   
   observe({
     if(is.null(indicators_list())) return()
     l <- indicators_list()
@@ -363,15 +371,11 @@ server <- function(input, output, session) {
     })
   })
   
-  
+  # Graficos disponibles 
   possible_viz <- reactive({
     p <- indicator_choose()
     if (is.null(p)) return()
     v <- c("bar", "table")
-    # if (p %in% c( "relacion_internacional")) {
-    #   v <- c("treemap", "table")
-    # }
-    
     if (p %in% c( "relacion_internacional", "sectores")) {
       v <- c("donut",v)
     }
@@ -379,6 +383,7 @@ server <- function(input, output, session) {
     v
   })
   
+  # hover de los iconos de los graficos disponibles
   hover_viz <- reactive({
     p <- indicator_choose()
     if (is.null(p)) return()
@@ -390,6 +395,7 @@ server <- function(input, output, session) {
   })
   
   
+  # guardar el ultimo indicador seleccionado  
   actual_but <- reactiveValues(active = NULL)
   
   observe({
@@ -404,7 +410,7 @@ server <- function(input, output, session) {
     }
   })
   
-  
+  # renderizar los graficos en pantalla
   output$viz_icons <- renderUI({
     req(possible_viz())
     suppressWarnings(
@@ -417,7 +423,7 @@ server <- function(input, output, session) {
     )
   })
   
-  
+  # guardar la ultima grafica seleccionada
   id_viz <- reactive({
     id_viz <- actual_but$active
     if (is.null(id_viz)) id_viz <- "bar"
@@ -434,8 +440,8 @@ server <- function(input, output, session) {
     l_i
   })
   
-
   
+  # Selector de compromiso en indicador especificoß
   output$commitment <- renderUI({
     req(data())
     req(last_indicator())
@@ -446,7 +452,7 @@ server <- function(input, output, session) {
   
   
   
-  
+  # Filtro de base de datos segun indicador seleccionado
   data_filter <- reactive({
     req(data())
     req(last_indicator())
@@ -463,7 +469,7 @@ server <- function(input, output, session) {
     df
   })
   
-  
+  # seleccion de hitos en indicadores especificos
   output$addFilters <- renderUI({
     req(data_filter())
     req(last_indicator())
@@ -474,12 +480,14 @@ server <- function(input, output, session) {
     selectizeInput("hitoSel",  "HITO DE INTERES", unique(df$hito))
   })
   
+  # Preparacion de datos y graficos -----------------------------------------
+  # Organizacion de base de datos segun selecciones apriori
+  
   data_select <- reactive({
     req(data_filter())
     req(last_indicator())
     df <- data_filter()
     var_s <- last_indicator()
-    #if (last_indicator() %in% c( "contraparte_grupoNucleo", "entidad_grupoNucleo")) return()
     
     if (last_indicator() %in% "estado") {
       df <- df[,c(var_s, "hito_id", "estado_contraparte", "estado_grupoNucleo", "cmp_esperado", "hito")]
@@ -580,12 +588,10 @@ server <- function(input, output, session) {
         }
       }
     }
-    #print(df)
     df
-    
   })
   
-  
+  # estilos de visualizacion segun guia de paga 
   opts_plot <- reactive({
     req(data_select())
     req(id_viz())
@@ -764,7 +770,6 @@ server <- function(input, output, session) {
     
     
     
-    #print(data_select())
     list(
       data = data_select(),
       plot_margin_bottom = opts_plot()$marginBottom,
@@ -809,7 +814,7 @@ server <- function(input, output, session) {
     )
   })
   
-  
+  # tipo de datos a graficar
   viz_type <- reactive({
     req(last_indicator())
     req(id_viz())
@@ -835,6 +840,7 @@ server <- function(input, output, session) {
     viz_sel
   })
   
+  # guardar visualizacion segun datos
   hgch_viz <- reactive({
     req(input$compromiso_id)
     req(viz_type())
@@ -869,12 +875,11 @@ server <- function(input, output, session) {
   })
   
   
-  
+  # Informacion de modal que da detalle especifico en un indicador predeterminado al dar click en 
+  # la grafica
   
   textModal <- reactive({
-    # if (last_indicator() != "actividades") {
-    #   df <- df %>% filter(tipo %in% input$hcClicked$cat, hito %in% input$hcClicked$id)
-    # }
+    
     req(last_indicator())
     if (last_indicator() %in% c("avance", "estado",  "participantes", "sectores", "relacion_internacional")) return()
     if (is.null(input$hcClicked)) return()
@@ -947,10 +952,10 @@ server <- function(input, output, session) {
     shinypanels::showModal("modal_extra_info")
   })
   
-  
+  # Renderizar tabla
   output$table_view <- renderDataTable({
     req(data_filter())
-    #if (actual_but$active != "table") return()
+    
     df <- data_filter() %>% dplyr::select(-hito_id, -cmp_esperado)
     
     df_dic <- data.frame(id = names(df))
@@ -1007,7 +1012,7 @@ server <- function(input, output, session) {
   })
   
   
-  
+  # mostrar visualizacion en pantalla
   output$final_viz <- renderUI({
     
     if (is.null(id_viz())) return()
@@ -1034,6 +1039,9 @@ server <- function(input, output, session) {
     
   })
   
+  
+  # Descarga de viz y datos -------------------------------------------------
+  
   output$descargas <- renderUI({
     if (is.null(actual_but$active)) return()
     if (actual_but$active != "table") {
@@ -1050,96 +1058,94 @@ server <- function(input, output, session) {
   downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
   downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
   
-  
+  # Informacion de modal que explica cada indicador
   textButtonInfo <- reactive({
     req(indicator_choose())
     
     if (indicator_choose() == "avance") {
       tx <- HTML("<b>Indicador 1.</b><br/><br/><br/>
-Esta gráfica refleja el porcentaje de cumplimiento de los hitos de cada uno de los compromisos.  Para ver cada compromiso dar clic en la barra del nombre del compromiso y seleccionar. <br/><br/>
-En azul claro se encuentra el porcentajes de cumplimiento, y en azul oscuro el porcentaje por ejecutar.<br/><br/>
-Los hitos finalizados de acuerdo a las fechas del Plan de Acción de Gobierno de Ecuador tienen letras en color rojo, y los hitos en proceso se  encuentran en color gris.<br/><br/>
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-")
+                  Esta gráfica refleja el porcentaje de cumplimiento de los hitos de cada uno de los compromisos.  Para ver cada compromiso dar clic en la barra del nombre del compromiso y seleccionar. <br/><br/>
+                  En azul claro se encuentra el porcentajes de cumplimiento, y en azul oscuro el porcentaje por ejecutar.<br/><br/>
+                  Los hitos finalizados de acuerdo a las fechas del Plan de Acción de Gobierno de Ecuador tienen letras en color rojo, y los hitos en proceso se  encuentran en color gris.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
+                 ")
     }
     if (indicator_choose() == "estado") {
       tx <- HTML("<b>Indicador 2.</b><br/><br/><br/>
-Esta gráfica refleja el estado en que se encuentra la implementación de cada hito del compromiso, según su fecha de actualización más reciente. En la parte inferior de la gráfica se encuentran las cuatro fases en las que se clasifica el cumplimiento de los hitos, estas son: definición, planificación, ejecución y completado.
-<br/><br/>
-En color naranja se encuentran los estados de avance indicados por de las entidades responsables; mientras que las barras de color azul corresponden al estado de avance indicado por las entidades contraparte.
-<br/><br/>
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-")
+                  Esta gráfica refleja el estado en que se encuentra la implementación de cada hito del compromiso, según su fecha de actualización más reciente. En la parte inferior de la gráfica se encuentran las cuatro fases en las que se clasifica el cumplimiento de los hitos, estas son: definición, planificación, ejecución y completado.
+                  <br/><br/>
+                  En color naranja se encuentran los estados de avance indicados por de las entidades responsables; mientras que las barras de color azul corresponden al estado de avance indicado por las entidades contraparte.
+                  <br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
+                  ")
     }
     if (indicator_choose() == "cumplimiento") {
       tx <- HTML("<b>Indicador 3.</b><br/><br/><br/>
-Esta gráfica muestra el cumplimiento de las  si las entidades responsables y contrapartes con sus responsabilidades respecto a la gestión de cada hito.
-<br/><br/>Se realizan 4 preguntas distintas; <br/>
-<ul>
-<li>Cumplimiento de las responsabilidades adquiridas por parte de la contraparte frente a la entidad responsable.</li>
-<li>Cumplimiento de las responsabilidades de la entidad responsable ante la contraparte.</li>
-<li>Cumplimiento de las responsabilidades de la contraparte frente al Grupo Núcleo. </li>
-<li>Cumplimiento de las responsabilidades de la entidad responsable ante el Grupo Núcleo.</li>
-</ul>
-<br/>
-En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que están en desarrollo.
-<ul>
-<li>Color azul = entidades responsables</li>
-<li>Color rojo = contrapartes</li>
-<li>Color verde = Grupo Núcleo</li>
-</ul>
-")
+                  Esta gráfica muestra el cumplimiento de las  si las entidades responsables y contrapartes con sus responsabilidades respecto a la gestión de cada hito.
+                  <br/><br/>Se realizan 4 preguntas distintas; <br/>
+                  <ul>
+                  <li>Cumplimiento de las responsabilidades adquiridas por parte de la contraparte frente a la entidad responsable.</li>
+                  <li>Cumplimiento de las responsabilidades de la entidad responsable ante la contraparte.</li>
+                  <li>Cumplimiento de las responsabilidades de la contraparte frente al Grupo Núcleo. </li>
+                  <li>Cumplimiento de las responsabilidades de la entidad responsable ante el Grupo Núcleo.</li>
+                  </ul>
+                  <br/>
+                  En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que están en desarrollo.
+                  <ul>
+                  <li>Color azul = entidades responsables</li>
+                  <li>Color rojo = contrapartes</li>
+                  <li>Color verde = Grupo Núcleo</li>
+                  </ul>
+                  ")
     }
     if (indicator_choose() == "actividades") {
       tx <- HTML("<b>Indicador 4.</b><br/><br/><br/>
-Esta gráfica muestra el número de actividades en las cuales se han involucrado otros actores relevantes en el proceso para el cumplimiento de los compromisos.<br/><br/>
-En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo.<br/><br/>
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula<br/><br/>
-¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso?
-")
+                  Esta gráfica muestra el número de actividades en las cuales se han involucrado otros actores relevantes en el proceso para el cumplimiento de los compromisos.<br/><br/>
+                  En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula<br/><br/>
+                  ¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso?
+                  ")
     }
     if (indicator_choose() == "participantes") {
       tx <- HTML("<b>Indicador 5. </b><br/><br/><br/>
-Esta gráfica muestra el número de participantes que se han involucrado en cada uno de los hitos por cada compromiso. En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo. <br/><br/>
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-")
+                  Esta gráfica muestra el número de participantes que se han involucrado en cada uno de los hitos por cada compromiso. En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo. <br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
+                ")
     }
     if (indicator_choose() == "sectores") {
       tx <- HTML("<b>Indicador 6. </b><br/><br/><br/>
-Esta gráfica muestra los sectores a los que pertenecen los participantes de cada hito del compromiso.  <br/>
-<br/>
-<ul>
-<li>Color azul = academia</li>
-<li>Color naranja = entidades públicas</li>
-<li>Color amarillo claro = sociedad civil</li>
-<li>Color rojo = sector privada</li>
-<li>Color verde = ciudadanía en general </li>
-<li>Color amarillo oscuro = organismos multilaterales</li>
-</ul><br/>
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-")
+                  Esta gráfica muestra los sectores a los que pertenecen los participantes de cada hito del compromiso.  <br/>
+                  <br/>
+                  <ul>
+                  <li>Color azul = academia</li>
+                  <li>Color naranja = entidades públicas</li>
+                  <li>Color amarillo claro = sociedad civil</li>
+                  <li>Color rojo = sector privada</li>
+                  <li>Color verde = ciudadanía en general </li>
+                  <li>Color amarillo oscuro = organismos multilaterales</li>
+                  </ul><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
+                  ")
     }
     if (indicator_choose() == "resultados") {
       tx <- HTML('<b>Indicador 7.</b><br/><br/><br/>
-Esta gráfica muestra la percepción de cada actor frente a los resultados de la implementación de cada hito. En primer lugar, en color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo. En segundo lugar, las percepciones en color azul corresponden a las entidades contraparte, mientras en color verde se encuentran las del Grupo Núcleo. <br/><br/>
-Adicionalmente, se han elegido tres calificaciones para determinar las percepciones de los actores frente a los resultados; estas son, “se mantuvo igual”, “mejoró un poco” y “mejoró sustancialmente”.<br/><br/>
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-')
+                  Esta gráfica muestra la percepción de cada actor frente a los resultados de la implementación de cada hito. En primer lugar, en color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo. En segundo lugar, las percepciones en color azul corresponden a las entidades contraparte, mientras en color verde se encuentran las del Grupo Núcleo. <br/><br/>
+                  Adicionalmente, se han elegido tres calificaciones para determinar las percepciones de los actores frente a los resultados; estas son, “se mantuvo igual”, “mejoró un poco” y “mejoró sustancialmente”.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
+                  ')
     }
     if (indicator_choose() == "relacion_internacional") {
       tx <- HTML("<b>Indicador 8.</b><br/><br/><br/>
-Esta gráfica muestra si los actores han cumplido con iniciativas internacionales en la culminación de los hitos de los compromisos.<br/><br/>
-En cada uno de los hitos se determina el cumplimiento con iniciativas internacionales.<br/><br/>
-Se detalla la iniciativa internacional relacionada, así como el punto concreto con el que se relaciona. <br/><br/>
-
-También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-
-")
+                  Esta gráfica muestra si los actores han cumplido con iniciativas internacionales en la culminación de los hitos de los compromisos.<br/><br/>
+                  En cada uno de los hitos se determina el cumplimiento con iniciativas internacionales.<br/><br/>
+                  Se detalla la iniciativa internacional relacionada, así como el punto concreto con el que se relaciona. <br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
+                 ")
     }
     
     if (indicator_choose() == "estrategias_grupoNucleo") {
       tx <- HTML("<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
-      Esta gráfica muestra si existen o no estrategias de comunicación cocreadas en cada compromiso.")
+                 Esta gráfica muestra si existen o no estrategias de comunicación cocreadas en cada compromiso.")
     }
     
     div(class = "bodyModal" ,tx)
@@ -1176,17 +1182,17 @@ También puedes explorar la tabla de avances del Plan con el símbolo de la cuad
     if (indicator_choose() == "actividades") {
       tx <- HTML("<b>4. Número de actividades realizadas para la inclusión de actores en el proceso (en caso que corresponda):</b><br/><br/><br/>
                   Permite determinar las circunstancias donde el hito se pensó en relación con la inclusión de actores en el proceso. Esta categoría se podrá contrastar con las evidencias de actividades realizadas en cada caso.
-")
+                 ")
     }
     if (indicator_choose() == "participantes") {
       tx <- HTML("<b>5. Número de participantes en total en cada hito de los compromisos:</b><br/><br/><br/>
                   El número de participantes en cada hito permite determinar el nivel de inclusión de personas del compromiso en las actividades. Esta categoría se determina con el número de participantes en al menos una actividad del hito.
-")
+                 ")
     }
     if (indicator_choose() == "sectores") {
       tx <- HTML("<b>6. Identificación de sectores de pertenencia de participantes en cada hito de los compromisos:  </b><br/><br/><br/>
                   El sector al que pertenecen los participantes en cada hito permite determinar el nivel de inclusión de personas de distintos puntos de enunciación en las actividades del compromiso.
-")
+                 ")
     }
     if (indicator_choose() == "resultados") {
       tx <- HTML('<b>7. Percepción de resultados de implementación del hito:</b><br/><br/><br/>
@@ -1195,7 +1201,7 @@ También puedes explorar la tabla de avances del Plan con el símbolo de la cuad
     if (indicator_choose() == "relacion_internacional") {
       tx <- HTML("<b>8. Cumplimiento con iniciativas internacionales:</b><br/><br/><br/>
                   Permite determinar si a partir del cumplimiento del hito se están cumpliendo algunas iniciativas internacionales relacionados con el compromiso.
-          ")
+               ")
     }
     if (indicator_choose() == "estrategias_grupoNucleo") {
       tx <-HTML("<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
