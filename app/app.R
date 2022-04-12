@@ -245,7 +245,7 @@ ui <- panelsPage(
     css = "padding: 4.8em 3.5em !important; box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1) !important;"
   ),
   tags$head(tags$head(
-    includeScript("js/siscrimel.js")
+    includeScript("js/paga.js")
   )),
   styles = style,
   panel(title = "Indicadores",
