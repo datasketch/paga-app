@@ -1,4 +1,0 @@
-library(readr)
-uno <- read_csv("data/formulario-contrapartes-Grid view.csv")
-dos <- read_csv("data/formulario-entidades-Grid view.csv")
-tres <- read_csv("data/formulario-grupo-nucleo-Grid view.csv")
