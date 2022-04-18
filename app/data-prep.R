@@ -216,7 +216,7 @@ data_fin <- data_all2 %>% dplyr::full_join(dataGrupoNucleo)
 data_fin$avance <- as.numeric(data_fin$avance)
 data_fin$actividades <- as.numeric(data_fin$actividades)
 data_fin$participantes <- as.numeric(data_fin$participantes)
-data_fin$hito_id <- str_extract(data_fin$hito, "Hito [0-9]")
+data_fin$hito_id <- stringr::str_extract(data_fin$hito, "Hito [0-9]")
 data_fin$cmp_esperado <- ifelse(lubridate::ymd(data_fin$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 data_fin
 #readr::write_rds(data_fin, "data/all_data.rds")
