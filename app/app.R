@@ -353,10 +353,12 @@ server <- function(input, output, session) {
     l <- indicators_list()
     last_btn <- indicator_choose()
     button_id <- which(c("avance", "estado", "cumplimiento", "actividades", "participantes", "sectores", "resultados", "relacion_internacional", "estrategias_grupoNucleo") %in% last_btn)
+    print("ind")
+    print(button_id)
     l[[button_id]] <- gsub("needed", "needed basic_active", l[[button_id]])
     l[[button_id]] <- HTML(paste0(paste(l[[button_id]], collapse = '')))
     if (indicator_choose() == "cumplimiento")
-      l[[3]] <- div(l[[3]],
+      l[[button_id]] <- div(l[[button_id]],
                     radioButtons("sub_cumplimiento",
                                  " ", 
                                  setNames(c("contraparte_responsable", "entidad_responsable", "contraparte_grupoNucleo", "entidad_grupoNucleo"), 
