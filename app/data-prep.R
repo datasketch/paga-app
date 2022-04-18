@@ -12,7 +12,7 @@ library(readr)
 
 # L L A V E
 readRenviron(".Renviron")
-noco_key <- Sys.getenv("NOCO_API_KEY")
+noco_key <- Sys.getenv("API_TOKEN")
 
 
 
