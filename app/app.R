@@ -199,7 +199,19 @@ font-weight: 500;
 .dropdown-action-container, .shiny-bound-input {
  width: 250px !important;
 }
+#viz_selection {
+ width: 180px !important;
+}
 
+#dropdown_allData-dropdown {
+ width: 180px !important;
+}
+
+#dropdown_allData-DownloadTblcsv {
+    background-color: #ff7f00 !important;
+    color: #fff !important;
+    border: 1px solid #ff7f00 !important;
+}
 
 /*
 scroll STYLES
@@ -269,7 +281,8 @@ ui <- panelsPage(
             type = "html", loader = "loader4")
         ),# 
         footer =  div(class = "panel-header",
-                      uiOutput("viz_icons"), 
+                      uiOutput("viz_icons"),       
+                      downloadTableUI("dropdown_allData", text = "DESCARGAR DATOS", formats = c("csv"), display = "buttons"),
                       div(style = "display: flex;gap:20px;",
                           actionButton("info_add", "DESCRIPCIÓN DE ESTA GRÁFICA"),
                           actionButton("ficha_add", "FICHA TÉCNICA DEL INDICADOR")
@@ -678,8 +691,7 @@ server <- function(input, output, session) {
       yEnabled <- FALSE
       marginBottom <- 50
       showLabels <- TRUE
-      myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
-      
+      #myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
     } else if (id_button == "sectores") {
       tx <- "{hito} <br/> <b>Sector: {sectores}</b>"
       yMax <- 6
@@ -837,8 +849,6 @@ server <- function(input, output, session) {
     
     type_viz <- actual_but$active
     viz_sel <- paste0("hgch_", type_viz, "_", viz)
-    #print(viz_sel)
-    #print(viz_sel)
     viz_sel
   })
   
@@ -868,7 +878,6 @@ server <- function(input, output, session) {
     tryCatch({
       req(viz_type())
       req(opts_viz())
-      #print(opts_viz())
       do.call(viz_type(), opts_viz())
     }, error = function(con) {
       return()
@@ -892,7 +901,6 @@ server <- function(input, output, session) {
     hito_select <- gsub("<br/>", " ", input$hcClicked$id)
     hito_select <- gsub("co- creación", "co-creación", hito_select)
     df <- df %>% filter(hito_id %in% hito_select)
-    
     
     if (last_indicator() == "actividades") {
       tx <- div(class = "bodyModal",
@@ -918,9 +926,6 @@ server <- function(input, output, session) {
                 )
       )
     }
-    if (last_indicator() == "participantes") {
-      tx <- "hola"
-    }
     if (last_indicator() %in% c("contraparte_responsable")) {
       tx <- div(class = "bodyModal",
                 "Sin información de la justificación de cumplimiento de responsabilidades"
@@ -942,6 +947,7 @@ server <- function(input, output, session) {
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       tx <- "Sin detalle"
     }
+
     
     tx
     
@@ -1049,10 +1055,10 @@ server <- function(input, output, session) {
   output$descargas <- renderUI({
     if (is.null(actual_but$active)) return()
     if (actual_but$active != "table") {
-      div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 20px;",
+      div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 15px;",
            downloadImageUI("download_viz", dropdownLabel = "Descargar visualización", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
            #} else {
-           downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
+           downloadTableUI("dropdown_table", dropdownLabel = "Descargar Filtros  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
       )
     } else {
       downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
@@ -1061,6 +1067,9 @@ server <- function(input, output, session) {
   
   downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
   downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
+  
+  downloadTableServer("dropdown_allData", element = reactive(data()), formats = c("csv", "xlsx", "json"), file_prefix = "allData")
+  
   
   # Informacion de modal que explica cada indicador
   textButtonInfo <- reactive({
