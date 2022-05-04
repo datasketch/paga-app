@@ -12,7 +12,7 @@ library(readr)
 
 # L L A V E
 readRenviron(".Renviron")
-noco_key <- Sys.getenv("API_TOKEN")
+noco_key <- Sys.getenv("NOCO_API_KEY")
 
 
 
@@ -29,8 +29,8 @@ dicHitos <- data_frame(compromiso = dataContraparte$Compromiso,
                        dataContraparte[,indHito])
 
 dicHitos <- dicHitos %>% 
-              tidyr::gather("numHito","hito", -compromiso, -idF, -organizacion) %>% 
-               tidyr::drop_na(hito) %>% dplyr::filter(hito != "") 
+  tidyr::gather("numHito","hito", -compromiso, -idF, -organizacion) %>% 
+  tidyr::drop_na(hito) %>% dplyr::filter(hito != "") 
 dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, organizacion, hito, .keep_all = T) %>% select(-organizacion)
 dicHitos <- dicHitos %>% rename("Id" = "idF")
 dataContraparte <- dataContraparte[,-indHito]
@@ -136,7 +136,7 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
                                                 "IdCompromisos" = "Id",
                                                 "CreatedAtCompromiso" = "CreatedAt",
                                                 "UpdatedAtCompromiso" = "UpdatedAt"
-                                                )) 
+)) 
 
 l <- purrr::map(1:ncol(compromisos), function(i) {
   compromisos[[i]] <<- trimws(gsub("  ", " ",gsub("\t ", "", compromisos[[i]])))
