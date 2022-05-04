@@ -1049,28 +1049,6 @@ server <- function(input, output, session) {
     
   })
   
-  
-  # Descarga de viz y datos -------------------------------------------------
-  
-  output$descargas <- renderUI({
-    if (is.null(actual_but$active)) return()
-    if (actual_but$active != "table") {
-      div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 15px;",
-           downloadImageUI("download_viz", dropdownLabel = "Descargar visualización", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
-           #} else {
-           downloadTableUI("dropdown_table", dropdownLabel = "Descargar Filtros  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
-      )
-    } else {
-      downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
-    }
-  })
-  
-  downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
-  downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
-  
-  downloadTableServer("dropdown_allData", element = reactive(data()), formats = c("csv", "xlsx", "json"), file_prefix = "allData")
-  
-  
   # Informacion de modal que explica cada indicador
   textButtonInfo <- reactive({
     req(indicator_choose())
@@ -1105,6 +1083,30 @@ server <- function(input, output, session) {
   observeEvent(input$ficha_add, {
     shinypanels::showModal("modal_ficha_info")
   })
+  
+  # Descarga de viz y datos -------------------------------------------------
+  
+  output$descargas <- renderUI({
+    if (is.null(actual_but$active)) return()
+    if (actual_but$active != "table") {
+      div (style = "display: grid;grid-template-columns: 1fr 1fr;grid-gap: 15px;",
+           downloadImageUI("download_viz", dropdownLabel = "Descargar visualización", formats = c("jpeg", "pdf", "png", "html"), display = "dropdown"),
+           #} else {
+           downloadTableUI("dropdown_table", dropdownLabel = "Descargar Filtros  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
+      )
+    } else {
+      downloadTableUI("dropdown_table", dropdownLabel = "Descargar Datos  ", formats = c("csv", "xlsx", "json"), display = "dropdown")
+    }
+  })
+  
+  downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
+  downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
+  
+  downloadTableServer("dropdown_allData", element = reactive(data()), formats = c("csv", "xlsx", "json"), file_prefix = "allData")
+  
+  
+  
+ 
   
 }
 
