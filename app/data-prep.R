@@ -194,7 +194,7 @@ dataGrupoNucleo <- dataGrupoNucleo %>% inner_join(dicHitos)
 l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
   dataGrupoNucleo[[i]] <<- trimws(gsub("\n", " ", trimws(dataGrupoNucleo[[i]])))
 })
-
+dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::distinct(compromiso, hito, .keep_all = T)
 unique(dataGrupoNucleo$hito)
 dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "Id",
                                               "CreatedAtGrupoNucleo" = "CreatedAt",
