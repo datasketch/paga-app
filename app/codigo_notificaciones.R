@@ -9,8 +9,8 @@ library(mailR)
 
 
 #### CARGA DE LA INFORMACIÓN ####
-#load(file = "data/all_data.RData")
-data_fin <- source("data-prep.R")$value
+load(file = "/cloud/project/all_data.RData")
+
 # TABLA LISTADO DE CORREOS
 tabla_correo<-data.frame(entidad=c("Ministerio de Telecomunicaciones y de la Sociedad de la Información",
                                    "Secretaría Nacional de Planificación",                               
@@ -68,16 +68,15 @@ tabla_correo<-data.frame(entidad=c("Ministerio de Telecomunicaciones y de la Soc
 #### NOTIFICACIÓN FECHAS 2022-05-17 Y 2022-05-20 ####
 if(Sys.Date()==lubridate::as_date("2022-05-17")|Sys.Date()==lubridate::as_date("2022-05-20")){
   #### PRIMERA NOTIFICACIÓN GENERAL 
-  cuerpo_correo<- paste0("Estimada Entidad Responsable, entre el 23-05-2022 y 02-06-2022 se procederá con la carga de información del compromiso a su cargo. Por favor preparar, revisar y actualizar la información necesaria para demostrar el avance realizado y de igual manera gestionar la carga de las evidencias del avance de cumplimiento.
-  Atentamente, Gobierno Abierto Ecuador")
   ######## ENVIO DE CORREO ELECTRONICO 
   sender <- "gizcontrol001@gmail.com"
   recipients <- c("flor.gonzalez@giz.de")#c(unique(tabla_correo$correo))
   mailR::send.mail(from = sender,
                    to = recipients,
-                   cc = c("camila@datasketch.co"),#gobiernoabierto@presidencia.gob.ec
+                   cc = c("cabb96.cb@gmail.com"),#gobiernoabierto@presidencia.gob.ec
                    subject = "PAGA: Recordatorio para carga de información",
-                   body = cuerpo_correo,
+                   body = paste0("<html>Estimada Entidad Responsable,<br><br> Entre el <b>23-05-2022 y 02-06-2022</b> se procederá con la carga de información del compromiso a su cargo. Por favor preparar, revisar y actualizar la información necesaria para demostrar el avance realizado y de igual manera gestionar la carga de las evidencias del avance de cumplimiento.<br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                   html = TRUE, 
                    smtp = list(host.name = "smtp.gmail.com", port = 465,
                                user.name = "gizcontrol001@gmail.com",
                                passwd = "gizcontrol4752", ssl = TRUE),
@@ -91,7 +90,7 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
   split_1<- split(x = data_fin,f = data_fin$compromiso)
   # ANALISIS POR COMPROMISOS #
   for (i in 1:length(split_1)) {
-    #i<-4
+    #i<-1
     tmp<-split_1[[i]]
     tmp<- tmp%>%arrange(hito)%>%as.data.frame()
     split_2<- split(x = tmp,f = tmp$entidad)
@@ -104,7 +103,6 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
       if(nrow(envio)>0){
         compromiso<- unique(envio$compromiso)
         hitos<- sort(unique(envio$hito))
-        cuerpo_correo<- paste0("Estimada Entidad Responsable, a la fecha del ",Sys.Date()," se identifica que no se ha procedido con la carga de información con respecto al compromiso: ",toupper(compromiso),", específicamente en: ",paste0(hitos,collapse = "; ")," Por favor completar la información requerida hasta el 2022-06-02. <br>Atentamente, Gobierno Abierto Ecuador.")
         ######## ENVIO DE CORREO ELECTRONICO #####
         if(compromiso=="Ciudadanización de la mejora de los trámites (simplificación)"){
           sender <- "gizcontrol001@gmail.com"
@@ -113,7 +111,8 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
                            to = recipients,
                            cc = c("cabb96.cb@gmail.com"),#gobiernoabierto@presidencia.gob.ec
                            subject = "PAGA: Recordatorio para carga de información",
-                           body = cuerpo_correo,
+                           body = paste0("<html>Estimada Entidad Responsable,<br><br> A la fecha del <b>",Sys.Date()," se identifica que no se ha procedido con la carga de información </b> con respecto al compromiso: ",toupper(compromiso),", específicamente en:<br></b>",paste0(hitos,collapse = ";<br> "),"<br><br><b>Por favor completar la información requerida hasta el 2022-06-02</b>.<br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                           html = TRUE, 
                            smtp = list(host.name = "smtp.gmail.com", port = 465,
                                        user.name = "gizcontrol001@gmail.com",
                                        passwd = "gizcontrol4752", ssl = TRUE),
@@ -126,7 +125,8 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
                            to = recipients,
                            cc = c("cabb96.cb@gmail.com"),#gobiernoabierto@presidencia.gob.ec
                            subject = "PAGA: Recordatorio para carga de información",
-                           body = cuerpo_correo,
+                           body = paste0("<html>Estimada Entidad Responsable,<br><br> A la fecha del <b>",Sys.Date()," se identifica que no se ha procedido con la carga de información </b> con respecto al compromiso: ",toupper(compromiso),", específicamente en:<br></b>",paste0(hitos,collapse = ";<br> "),"<br><br><b>Por favor completar la información requerida hasta el 2022-06-02</b>.<br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                           html = TRUE, 
                            smtp = list(host.name = "smtp.gmail.com", port = 465,
                                        user.name = "gizcontrol001@gmail.com",
                                        passwd = "gizcontrol4752", ssl = TRUE),
@@ -146,10 +146,7 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
       if(nrow(envio)>0){
         compromiso<- unique(envio$compromiso)
         hitos<- sort(unique(envio$hito))
-        cuerpo_correo<- paste0("Estimada Contraparte, a la fecha del ",Sys.Date(),
-                               " se identifica que no se ha procedido con la carga de información con repecto al compromiso: ",toupper(compromiso),
-                               ", específicamente en: ",paste0(hitos,collapse = "; ")," Por favor completar la información requerida hasta el 2022-06-02. 
-                             Atentamente, Gobierno Abierto Ecuador.")
+        
         if(compromiso=="Co-diseño de la hoja de ruta para la implementación del Estándar EITI para mejorar la transparencia en las industrias extractivas en Ecuador (petróleo, gas y minería)"&&k==3){
           ####### ENVIO DE CORREO ELECTRONICO #####
           sender <- "gizcontrol001@gmail.com"
@@ -158,8 +155,8 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
                            to = recipients,
                            subject = "PAGA: Recordatorio para carga de información",
                            cc = c("cabb96.cb@gmail.com"),#gobiernoabierto@presidencia.gob.ec
-                           
-                           body = cuerpo_correo,
+                           body = paste0("<html>Estimada Contraparte,<br><br> A la fecha del <b>",Sys.Date()," se identifica que no se ha procedido con la carga de información </b> con respecto al compromiso: ",toupper(compromiso),", específicamente en:<br></b>",paste0(hitos,collapse = ";<br> "),"<br><br><b>Por favor completar la información requerida hasta el 2022-06-02</b>.<br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                           html = TRUE, 
                            smtp = list(host.name = "smtp.gmail.com", port = 465,
                                        user.name = "gizcontrol001@gmail.com",
                                        passwd = "gizcontrol4752", ssl = TRUE),
@@ -172,9 +169,9 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
           mailR::send.mail(from = sender,
                            to = recipients,
                            cc = c("cabb96.cb@gmail.com"),#gobiernoabierto@presidencia.gob.ec
-                           
                            subject = "PAGA: Recordatorio para carga de información",
-                           body = cuerpo_correo,
+                           body = paste0("<html>Estimada Contraparte,<br><br> A la fecha del <b>",Sys.Date()," se identifica que no se ha procedido con la carga de información </b> con respecto al compromiso: ",toupper(compromiso),", específicamente en:<br></b>",paste0(hitos,collapse = ";<br> "),"<br><br><b>Por favor completar la información requerida hasta el 2022-06-02</b>.<br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                           html = TRUE, 
                            smtp = list(host.name = "smtp.gmail.com", port = 465,
                                        user.name = "gizcontrol001@gmail.com",
                                        passwd = "gizcontrol4752", ssl = TRUE),
@@ -190,7 +187,6 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
 if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date("2022-06-02")){
   grupo_nucleo<-data_fin%>%filter(is.na(fecha_registro_grupoNucleo))%>%as.data.frame()
   compro<- as.character(unique(grupo_nucleo[,c("compromiso")]))
-  cuerpo_correo<- paste0("Estimado Grupo Nucleo, a la fecha del ",Sys.Date()," se identifica que no se ha procedido con la carga de información con repecto a los compromisos: ",paste0(compro,collapse = "; "),". Por favor completar la información requerida hasta el 2022-06-02.Atentamente, Gobierno Abierto Ecuador.")
   ######## ENVIO DE CORREO ELECTRONICO #####
   if (length(compro)>0) {
     sender <- "gizcontrol001@gmail.com"
@@ -198,7 +194,8 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
     mailR::send.mail(from = sender,
                      to = recipients,
                      subject = "PAGA: Recordatorio para carga de información",
-                     body = cuerpo_correo,
+                     body = paste0("<html>Estimado Grupo Núcleo,<br><br>A la fecha del <b>",Sys.Date(),", se identifica que no se ha procedido con la carga de información </b> con respecto a los compromisos:<br><br>",paste0(compro,collapse = ";<br> "),"<br><br><b>Por favor completar la información requerida hasta el 2022-06-02</b>.<br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                     html = TRUE, 
                      smtp = list(host.name = "smtp.gmail.com", port = 465,
                                  user.name = "gizcontrol001@gmail.com",
                                  passwd = "gizcontrol4752", ssl = TRUE),
@@ -212,17 +209,18 @@ if(Sys.Date()>=lubridate::as_date("2022-05-23")&&Sys.Date()<=lubridate::as_date(
 if(Sys.Date()==lubridate::as_date("2022-05-30")){
   completos<- data_fin%>%filter(!is.na(fecha_registro_entidades)|!is.na(fecha_registro_contraparte)&!is.na(IdCompromisos))
   completos<- completos%>%select(compromiso,hito,entidad,contraparte)%>%as.data.frame()%>%unique()%>%arrange(compromiso,hito)
-  if(length(completos)){
-    cuerpo_correo<- paste0("Estimado Grupo Nucleo, a la fecha del ",Sys.Date(),", se adjunta el archivo CSV, que identifica a las Entidades y Contrapartes que han completado la información de los hitos de cada compromiso de forma total y parcial. Atentamente, Gobierno Abierto Ecuador.")
+  if(nrow(completos)>0){
+    #cuerpo_correo<- paste0("Estimado Grupo Nucleo, a la fecha del ",Sys.Date(),", se adjunta el archivo CSV, que identifica a las Entidades y Contrapartes que han completado la información de los hitos de cada compromiso de forma total y parcial. Atentamente, Gobierno Abierto Ecuador.")
     # CREA ARCHIVO
-    write.table(x = as.data.frame(completos),file = "/cloud/project/registros_completos.csv",sep = "|")
+    write.table(x = as.data.frame(completos),file = "/cloud/project/registros_completos.csv",sep = "|",row.names = F)
     # ENVIO CORREO
     sender <- "gizcontrol001@gmail.com"
     recipients <- c("flor.gonzalez@giz.de")#c(gobiernoabierto@presidencia.gob.ec)
     mailR::send.mail(from = sender,
                      to = recipients,
                      subject = "PAGA: Recordatorio para carga de información",
-                     body = cuerpo_correo,
+                     body = paste0("<html>Estimado Grupo Núcleo,<br><br>A la fecha del ",Sys.Date(),",se adjunta el archivo CSV, que identifica a las Entidades y Contrapartes que han completado la información de los hitos de cada compromiso de forma total y parcial. <br><br>Atentamente,<br><br>Gobierno Abierto Ecuador<br> <img src='https://www.gobiernoabierto.ec/wp-content/uploads/2018/10/logo-GAE-500-01.jpg?x81037' style='width:125px;height:125px;'>"),
+                     html = TRUE, 
                      smtp = list(host.name = "smtp.gmail.com", port = 465,
                                  user.name = "gizcontrol001@gmail.com",
                                  passwd = "gizcontrol4752", ssl = TRUE),
