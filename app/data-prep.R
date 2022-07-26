@@ -16,7 +16,7 @@ noco_key <- Sys.getenv("API_TOKEN")
 
 
 # C O M P R O M I S O S
-urlCompromisos <- "http://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/InformacionGeneralCompromisos?limit=100000"
+urlCompromisos <- "http://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/Info-general-compromisos?limit=100000"
 infoCompromisos <- httr::GET(urlCompromisos, add_headers("xc-auth" = noco_key))
 compromisos <- httr::content(infoCompromisos) %>% dplyr::bind_rows()
 compromisos <- Filter(function(x) !all(is.na(x)), compromisos)
@@ -34,8 +34,8 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
                                                 "contacto" = "Nombre_contacto",
                                                 "corre_contacto" = "Correo_contacto",
                                                 "IdCompromisos" = "Id",
-                                                "CreatedAtCompromiso" = "CreatedAt",
-                                                "UpdatedAtCompromiso" = "UpdatedAt"
+                                                "CreatedAtCompromiso" = "created_at",
+                                                "UpdatedAtCompromiso" = "updated_at"
 )) 
 
 l <- purrr::map(1:ncol(compromisos), function(i) {
