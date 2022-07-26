@@ -34,8 +34,8 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
                                                 "contacto" = "Nombre_contacto",
                                                 "corre_contacto" = "Correo_contacto",
                                                 "IdCompromisos" = "Id",
-                                                "CreatedAtCompromiso" = "created_at",
-                                                "UpdatedAtCompromiso" = "updated_at"
+                                                "CreatedAtCompromiso" = "CreatedAt",
+                                                "UpdatedAtCompromiso" = "UpdatedAt"
 )) 
 
 l <- purrr::map(1:ncol(compromisos), function(i) {
