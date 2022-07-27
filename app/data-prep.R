@@ -16,7 +16,7 @@ noco_key <- Sys.getenv("API_TOKEN")
 
 
 # C O M P R O M I S O S
-urlCompromisos <- "http://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/Info-general-compromisos?limit=100000"
+urlCompromisos <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/info-general-compromisos?limit=100000"
 infoCompromisos <- httr::GET(urlCompromisos, add_headers("xc-auth" = noco_key))
 compromisos <- httr::content(infoCompromisos) %>% dplyr::bind_rows()
 compromisos <- Filter(function(x) !all(is.na(x)), compromisos)
@@ -34,8 +34,8 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
                                                 "contacto" = "Nombre_contacto",
                                                 "corre_contacto" = "Correo_contacto",
                                                 "IdCompromisos" = "Id",
-                                                "CreatedAtCompromiso" = "CreatedAt",
-                                                "UpdatedAtCompromiso" = "UpdatedAt"
+                                                "CreatedAtCompromiso" = "created_at",
+                                                "UpdatedAtCompromiso" = "updated_at"
 )) 
 
 l <- purrr::map(1:ncol(compromisos), function(i) {
@@ -54,7 +54,7 @@ compromisos <- compromisos %>% filter(!(contacto == "Mario Paúl Cabezas" & enti
 
 
 # E N T I D A D E S
-urlEntidades <- "https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/Entidades?limit=100000"#"https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/Entidadess"
+urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
 infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 
@@ -112,7 +112,7 @@ data_all <- compromisos %>% left_join(dataEntidades)
 
 # C O N T R A P A R T E
 
-urlContraparte <- "https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/contrapartes?limit=100000"#"https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/contrapartes"
+urlContraparte <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes"
 infoContraparte <- httr::GET(urlContraparte, add_headers(`xc-auth` = noco_key))
 dataContraparte <- httr::content(infoContraparte) %>% dplyr::bind_rows()
 
@@ -161,7 +161,7 @@ unique(compromisos$tematica)
 
 # G R U P O N U C L E O
 
-urlGrupoNucleo <- "https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/grupo-nucleo?limit=100000"
+urlGrupoNucleo <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/grupo-nucleo?limit=100000"
 infoGrupoNucleo <- httr::GET(urlGrupoNucleo, add_headers(`xc-auth` = noco_key))
 dataGrupoNucleo <- httr::content(infoGrupoNucleo) %>% dplyr::bind_rows()
 
