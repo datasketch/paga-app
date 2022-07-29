@@ -16,7 +16,7 @@ noco_key <- Sys.getenv("API_TOKEN")
 
 
 # C O M P R O M I S O S
-urlCompromisos <- "http://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/InformacionGeneralCompromisos?limit=100000"
+urlCompromisos <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/info-general-compromisos?limit=100000"
 infoCompromisos <- httr::GET(urlCompromisos, add_headers("xc-auth" = noco_key))
 compromisos <- httr::content(infoCompromisos) %>% dplyr::bind_rows()
 compromisos <- Filter(function(x) !all(is.na(x)), compromisos)
@@ -33,9 +33,9 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
                                                 "fecha_finalizacion" = "Fecha_finalizacion_hito",
                                                 "contacto" = "Nombre_contacto",
                                                 "corre_contacto" = "Correo_contacto",
-                                                "IdCompromisos" = "Id",
-                                                "CreatedAtCompromiso" = "CreatedAt",
-                                                "UpdatedAtCompromiso" = "UpdatedAt"
+                                                "IdCompromisos" = "id",
+                                                "CreatedAtCompromiso" = "created_at",
+                                                "UpdatedAtCompromiso" = "updated_at"
 )) 
 
 l <- purrr::map(1:ncol(compromisos), function(i) {
@@ -54,13 +54,13 @@ compromisos <- compromisos %>% filter(!(contacto == "Mario Paúl Cabezas" & enti
 
 
 # E N T I D A D E S
-urlEntidades <- "https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/Entidades?limit=100000"#"https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/Entidadess"
+urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
 infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataEntidades))
 dicHitos <- data_frame(compromiso = dataEntidades$Compromiso,
-                       idF = dataEntidades$Id,
+                       idF = dataEntidades$id,
                        dataEntidades[,indHito])
 dicHitos <- dicHitos %>% 
   tidyr::gather("numHito","hito", -compromiso, -idF) %>% 
@@ -102,8 +102,8 @@ l <- purrr::map(1:ncol(dataEntidades), function(i) {
 dataEntidades$compromiso <- gsub("  ", " ", dataEntidades$compromiso)
 dataEntidades$relacion_internacional_descripcion <- trimws(dataEntidades$relacion_internacional_descripcion)
 dataEntidades <- dataEntidades %>% rename("IdEntidades" = "Id",
-                                          "CreatedAtEntidad" = "CreatedAt",
-                                          "UpdatedAtEntidad" = "UpdatedAt")
+                                          "CreatedAtEntidad" = "created_at",
+                                          "UpdatedAtEntidad" = "updated_at")
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
 dataEntidades <- dataEntidades %>% filter(!entidad_persona_formulario %in% c("Juliana Galvis", "test", "test3"))
 
@@ -112,13 +112,13 @@ data_all <- compromisos %>% left_join(dataEntidades)
 
 # C O N T R A P A R T E
 
-urlContraparte <- "https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/contrapartes?limit=100000"#"https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/contrapartes"
+urlContraparte <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes"
 infoContraparte <- httr::GET(urlContraparte, add_headers(`xc-auth` = noco_key))
 dataContraparte <- httr::content(infoContraparte) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataContraparte))
 dicHitos <- data_frame(compromiso = dataContraparte$Compromiso,
-                       idF = dataContraparte$Id,
+                       idF = dataContraparte$id,
                        organizacion = dataContraparte$Organización,
                        dataContraparte[,indHito])
 
@@ -146,8 +146,8 @@ l <- purrr::map(1:ncol(dataContraparte), function(i) {
 })
 dataContraparte$compromiso <- gsub("  ", " ", dataContraparte$compromiso)
 dataContraparte <- dataContraparte %>% rename("IdContraparte" = "Id",
-                                              "CreatedAtContraparte" = "CreatedAt",
-                                              "UpdatedAtContraparte" = "UpdatedAt")
+                                              "CreatedAtContraparte" = "created_at",
+                                              "UpdatedAtContraparte" = "updated_at")
 dataContraparte$fecha_registro_contraparte <- lubridate::as_date(dataContraparte$fecha_registro_contraparte)
 dataContraparte <- dataContraparte %>% filter(!contraparte_persona_formulario %in% "test")
 # J O I N 
@@ -161,13 +161,13 @@ unique(compromisos$tematica)
 
 # G R U P O N U C L E O
 
-urlGrupoNucleo <- "https://datos.paga.datasketch.co/nc/registro_de_avances_gzwk/api/v1/grupo-nucleo?limit=100000"
+urlGrupoNucleo <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/grupo-nucleo?limit=100000"
 infoGrupoNucleo <- httr::GET(urlGrupoNucleo, add_headers(`xc-auth` = noco_key))
 dataGrupoNucleo <- httr::content(infoGrupoNucleo) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataGrupoNucleo))
 dicHitos <- data_frame(compromiso = dataGrupoNucleo$Compromiso,
-                       idF = dataGrupoNucleo$Id,
+                       idF = dataGrupoNucleo$id,
                        dataGrupoNucleo[,indHito])
 
 dicHitos <- dicHitos %>% 
@@ -196,9 +196,9 @@ l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
 })
 dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::distinct(compromiso, hito, .keep_all = T)
 unique(dataGrupoNucleo$hito)
-dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "Id",
-                                              "CreatedAtGrupoNucleo" = "CreatedAt",
-                                              "UpdatedAtGrupoNucleo" = "UpdatedAt")
+dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "id",
+                                              "CreatedAtGrupoNucleo" = "created_at",
+                                              "UpdatedAtGrupoNucleo" = "updated_at")
 
 
 
@@ -212,5 +212,5 @@ data_fin$participantes <- as.numeric(data_fin$participantes)
 data_fin$hito_id <- stringr::str_extract(data_fin$hito, "Hito [0-9]")
 data_fin$cmp_esperado <- ifelse(lubridate::ymd(data_fin$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 data_fin
-#save(data_fin, file = "data/all_data.RData")
+# save(data_fin, file = "data/all_data.RData")
 
