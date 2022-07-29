@@ -1,4 +1,5 @@
 webshot::install_phantomjs()
+library(shiny)
 library(shinypanels)
 library(parmesan)
 library(shinyinvoer)
