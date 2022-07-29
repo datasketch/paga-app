@@ -33,7 +33,7 @@ compromisos <- compromisos %>% dplyr::rename(c( "compromiso" = "Nombre_compromis
                                                 "fecha_finalizacion" = "Fecha_finalizacion_hito",
                                                 "contacto" = "Nombre_contacto",
                                                 "corre_contacto" = "Correo_contacto",
-                                                "IdCompromisos" = "Id",
+                                                "IdCompromisos" = "id",
                                                 "CreatedAtCompromiso" = "created_at",
                                                 "UpdatedAtCompromiso" = "updated_at"
 )) 
@@ -60,7 +60,7 @@ dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataEntidades))
 dicHitos <- data_frame(compromiso = dataEntidades$Compromiso,
-                       idF = dataEntidades$Id,
+                       idF = dataEntidades$id,
                        dataEntidades[,indHito])
 dicHitos <- dicHitos %>% 
   tidyr::gather("numHito","hito", -compromiso, -idF) %>% 
@@ -102,8 +102,8 @@ l <- purrr::map(1:ncol(dataEntidades), function(i) {
 dataEntidades$compromiso <- gsub("  ", " ", dataEntidades$compromiso)
 dataEntidades$relacion_internacional_descripcion <- trimws(dataEntidades$relacion_internacional_descripcion)
 dataEntidades <- dataEntidades %>% rename("IdEntidades" = "Id",
-                                          "CreatedAtEntidad" = "CreatedAt",
-                                          "UpdatedAtEntidad" = "UpdatedAt")
+                                          "CreatedAtEntidad" = "created_at",
+                                          "UpdatedAtEntidad" = "updated_at")
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
 dataEntidades <- dataEntidades %>% filter(!entidad_persona_formulario %in% c("Juliana Galvis", "test", "test3"))
 
@@ -118,7 +118,7 @@ dataContraparte <- httr::content(infoContraparte) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataContraparte))
 dicHitos <- data_frame(compromiso = dataContraparte$Compromiso,
-                       idF = dataContraparte$Id,
+                       idF = dataContraparte$id,
                        organizacion = dataContraparte$Organización,
                        dataContraparte[,indHito])
 
@@ -146,8 +146,8 @@ l <- purrr::map(1:ncol(dataContraparte), function(i) {
 })
 dataContraparte$compromiso <- gsub("  ", " ", dataContraparte$compromiso)
 dataContraparte <- dataContraparte %>% rename("IdContraparte" = "Id",
-                                              "CreatedAtContraparte" = "CreatedAt",
-                                              "UpdatedAtContraparte" = "UpdatedAt")
+                                              "CreatedAtContraparte" = "created_at",
+                                              "UpdatedAtContraparte" = "updated_at")
 dataContraparte$fecha_registro_contraparte <- lubridate::as_date(dataContraparte$fecha_registro_contraparte)
 dataContraparte <- dataContraparte %>% filter(!contraparte_persona_formulario %in% "test")
 # J O I N 
@@ -167,7 +167,7 @@ dataGrupoNucleo <- httr::content(infoGrupoNucleo) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataGrupoNucleo))
 dicHitos <- data_frame(compromiso = dataGrupoNucleo$Compromiso,
-                       idF = dataGrupoNucleo$Id,
+                       idF = dataGrupoNucleo$id,
                        dataGrupoNucleo[,indHito])
 
 dicHitos <- dicHitos %>% 
@@ -196,9 +196,9 @@ l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
 })
 dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::distinct(compromiso, hito, .keep_all = T)
 unique(dataGrupoNucleo$hito)
-dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "Id",
-                                              "CreatedAtGrupoNucleo" = "CreatedAt",
-                                              "UpdatedAtGrupoNucleo" = "UpdatedAt")
+dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "id",
+                                              "CreatedAtGrupoNucleo" = "created_at",
+                                              "UpdatedAtGrupoNucleo" = "updated_at")
 
 
 
@@ -212,5 +212,5 @@ data_fin$participantes <- as.numeric(data_fin$participantes)
 data_fin$hito_id <- stringr::str_extract(data_fin$hito, "Hito [0-9]")
 data_fin$cmp_esperado <- ifelse(lubridate::ymd(data_fin$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
 data_fin
-#save(data_fin, file = "data/all_data.RData")
+# save(data_fin, file = "data/all_data.RData")
 
