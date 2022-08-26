@@ -1100,7 +1100,7 @@ server <- function(input, output, session) {
     }
   })
   
-  downloadTableServer("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
+  downloadTableServer2("dropdown_table", element = reactive(list("Data"=data_filter(), "Diccionario"=indicadores_dic)), formats = c("csv", "xlsx", "json"), zip = TRUE, file_prefix = reactive(ind_table()))
   downloadImageServer("download_viz", element = reactive(hgch_viz()), lib = "highcharter", formats = c("jpeg", "pdf", "png", "html"), file_prefix = "plot")
   
   downloadTableServer("dropdown_allData", element = reactive(data()), formats = c("csv", "xlsx", "json"), file_prefix = "allData")
