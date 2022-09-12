@@ -585,7 +585,7 @@ server <- function(input, output, session) {
       indComp <- data.frame(compromiso = unique(df$compromiso))
       indComp$idCom <- paste0("Compromiso ", 1:nrow(indComp))
       df <- df %>% left_join(indComp)
-      df <- df %>% dplyr::select(-Id)
+      #df <- df %>% dplyr::select(-Id)
       df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo, c("Sí" = 4, "No" = 2)))
       df <- df %>% select(idCom, value, "estrategias_grupoNucleo", everything())
     }

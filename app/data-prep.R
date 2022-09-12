@@ -59,17 +59,22 @@ infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataEntidades))
-dicHitos <- data_frame(compromiso = dataEntidades$Compromiso,
-                       idF = dataEntidades$id,
-                       dataEntidades[,indHito])
-dicHitos <- dicHitos %>% 
-  tidyr::gather("numHito","hito", -compromiso, -idF) %>% 
+# dicHitos <- data_frame(compromiso = dataEntidades$Compromiso,
+#                        idF = dataEntidades$id,
+#                        dataEntidades[,indHito])
+
+
+dataEntidades <- dataEntidades %>% group_by(Compromiso) %>% mutate(idF = cur_group_id())
+
+
+dataEntidades <- dataEntidades %>% 
+  tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") %>% dplyr::select(-numHito)
 
-dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, hito, .keep_all = T)
-dicHitos <- dicHitos %>% rename("Id" = "idF")
+# dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, hito, .keep_all = T)
+# dicHitos <- dicHitos %>% rename("Id" = "idF")
 
-dataEntidades <- dataEntidades[,-indHito]
+#dataEntidades2 <- dataEntidades[,-indHito]
 
 dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
                                                     "entidad" = "Entidad_responsable_de_registrar_el_avance",
@@ -94,14 +99,14 @@ dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
 
 
 
-dataEntidades <- dataEntidades %>% dplyr::inner_join(dicHitos) #%>% dplyr::select(-idF)
+#dataEntidades <- dataEntidades %>% dplyr::inner_join(dicHitos) #%>% dplyr::select(-idF)
 l <- purrr::map(1:ncol(dataEntidades), function(i) {
   dataEntidades[[i]] <<-  trimws(gsub("\n", " ",dataEntidades[[i]]))
   dataEntidades[[i]][dataEntidades[[i]] == ""] <<- NA
 })
 dataEntidades$compromiso <- gsub("  ", " ", dataEntidades$compromiso)
 dataEntidades$relacion_internacional_descripcion <- trimws(dataEntidades$relacion_internacional_descripcion)
-dataEntidades <- dataEntidades %>% rename("IdEntidades" = "Id",
+dataEntidades <- dataEntidades %>% rename("IdEntidades" = "id",
                                           "CreatedAtEntidad" = "created_at",
                                           "UpdatedAtEntidad" = "updated_at")
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
@@ -117,17 +122,17 @@ infoContraparte <- httr::GET(urlContraparte, add_headers(`xc-auth` = noco_key))
 dataContraparte <- httr::content(infoContraparte) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataContraparte))
-dicHitos <- data_frame(compromiso = dataContraparte$Compromiso,
-                       idF = dataContraparte$id,
-                       organizacion = dataContraparte$Organización,
-                       dataContraparte[,indHito])
+# dicHitos <- data_frame(compromiso = dataContraparte$Compromiso,
+#                        idF = dataContraparte$id,
+#                        organizacion = dataContraparte$Organización,
+#                        dataContraparte[,indHito])
 
-dicHitos <- dicHitos %>% 
-  tidyr::gather("numHito","hito", -compromiso, -idF, -organizacion) %>% 
+dataContraparte <- dataContraparte %>% 
+  tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") 
-dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, organizacion, hito, .keep_all = T) %>% select(-organizacion)
-dicHitos <- dicHitos %>% rename("Id" = "idF")
-dataContraparte <- dataContraparte[,-indHito]
+#dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, organizacion, hito, .keep_all = T) %>% select(-organizacion)
+#dicHitos <- dicHitos %>% rename("Id" = "idF")
+#dataContraparte <- dataContraparte[,-indHito]
 
 dataContraparte <- dataContraparte %>% dplyr::rename(c( "estado_contraparte" = "Indicador 2",
                                                         "entidad_responsable" = "Indicador 3 - entidad",
@@ -138,14 +143,14 @@ dataContraparte <- dataContraparte %>% dplyr::rename(c( "estado_contraparte" = "
                                                         "contraparte_persona_formulario" = "Funcionario",
                                                         "contraparte" = "Organización")) 
 
-dataContraparte <- dataContraparte %>% dplyr::inner_join(dicHitos) 
+#dataContraparte <- dataContraparte %>% dplyr::inner_join(dicHitos) 
 
 l <- purrr::map(1:ncol(dataContraparte), function(i) {
   dataContraparte[[i]] <<-  trimws( gsub("\n", " ",dataContraparte[[i]]))
   dataContraparte[[i]][dataContraparte[[i]] == ""] <<- NA
 })
 dataContraparte$compromiso <- gsub("  ", " ", dataContraparte$compromiso)
-dataContraparte <- dataContraparte %>% rename("IdContraparte" = "Id",
+dataContraparte <- dataContraparte %>% rename("IdContraparte" = "id",
                                               "CreatedAtContraparte" = "created_at",
                                               "UpdatedAtContraparte" = "updated_at")
 dataContraparte$fecha_registro_contraparte <- lubridate::as_date(dataContraparte$fecha_registro_contraparte)
@@ -166,17 +171,17 @@ infoGrupoNucleo <- httr::GET(urlGrupoNucleo, add_headers(`xc-auth` = noco_key))
 dataGrupoNucleo <- httr::content(infoGrupoNucleo) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataGrupoNucleo))
-dicHitos <- data_frame(compromiso = dataGrupoNucleo$Compromiso,
-                       idF = dataGrupoNucleo$id,
-                       dataGrupoNucleo[,indHito])
+# dicHitos <- data_frame(compromiso = dataGrupoNucleo$Compromiso,
+#                        idF = dataGrupoNucleo$id,
+#                        dataGrupoNucleo[,indHito])
 
-dicHitos <- dicHitos %>% 
-  tidyr::gather("numHito","hito", -compromiso, -idF) %>% 
+dataGrupoNucleo <- dataGrupoNucleo %>% 
+  tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") %>% dplyr::select(-numHito)
-dicHitos2 <- dicHitos %>% arrange(-idF) %>%  distinct(compromiso, hito, .keep_all = T)
-dicHitos <- dicHitos %>% rename("Id" = "idF")
+#dicHitos2 <- dicHitos %>% arrange(-idF) %>%  distinct(compromiso, hito, .keep_all = T)
+#dicHitos <- dicHitos %>% rename("Id" = "idF")
 
-dataGrupoNucleo <- dataGrupoNucleo[,-indHito]
+#dataGrupoNucleo <- dataGrupoNucleo[,-indHito]
 
 dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "Indicador 2",
                                                         "entidad_responsable_gn" = "Indicador 3 - entidad - grupo nucleo",
@@ -190,7 +195,7 @@ dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "
 
 
 #dataGrupoNucleo <- dataGrupoNucleo[,c(-1,-2,-3)]
-dataGrupoNucleo <- dataGrupoNucleo %>% inner_join(dicHitos) 
+#dataGrupoNucleo <- dataGrupoNucleo %>% inner_join(dicHitos) 
 l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
   dataGrupoNucleo[[i]] <<- trimws(gsub("\n", " ", trimws(dataGrupoNucleo[[i]])))
 })
