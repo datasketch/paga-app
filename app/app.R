@@ -756,7 +756,9 @@ server <- function(input, output, session) {
       grid_y_enabled =  grid_y_enabled,
       colorDonut  = colorDonut,
       legendShow = legendShow,
-      legendRev = legendRev
+      legendRev = legendRev,
+      dataLabels_align = "middle",
+      dataLabels_inside = TRUE
     )
   })
   
@@ -805,6 +807,8 @@ server <- function(input, output, session) {
       dataLabels_template = opts_plot()$dataLabels_template,
       dataLabels_size = 13,
       text_size = 14,
+      dataLabels_align = "middle",
+      dataLabels_inside = TRUE,
       #na_color = "red",
       background_color = "transparent",
       y_max = opts_plot()$yMax,
