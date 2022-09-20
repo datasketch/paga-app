@@ -58,10 +58,6 @@ urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/
 infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 indHito <- grep("Hito", names(dataEntidades))
-# dicHitos <- data_frame(compromiso = dataEntidades$Compromiso,
-#                        idF = dataEntidades$id,
-#                        dataEntidades[,indHito])
-
 
 dataEntidades <- dataEntidades %>% group_by(Compromiso) %>% mutate(idF = cur_group_id())
 
@@ -69,11 +65,7 @@ dataEntidades <- dataEntidades %>% group_by(Compromiso) %>% mutate(idF = cur_gro
 dataEntidades <- dataEntidades %>% 
   tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") %>% dplyr::select(-numHito) 
-dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("Compromiso", "hito")], fromLast=T),]
-# dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, hito, .keep_all = T)
-# dicHitos <- dicHitos %>% rename("Id" = "idF")
 
-#dataEntidades2 <- dataEntidades[,-indHito]
 
 dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
                                                     "entidad" = "Entidad_responsable_de_registrar_el_avance",
@@ -109,6 +101,9 @@ dataEntidades <- dataEntidades %>% rename("IdEntidades" = "id",
                                           "CreatedAtEntidad" = "created_at",
                                           "UpdatedAtEntidad" = "updated_at")
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
+dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
+dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
+
 
 data_all <- compromisos %>% left_join(dataEntidades)
 
@@ -120,19 +115,12 @@ infoContraparte <- httr::GET(urlContraparte, add_headers(`xc-auth` = noco_key))
 dataContraparte <- httr::content(infoContraparte) %>% dplyr::bind_rows()
 
 indHito <- grep("Hito", names(dataContraparte))
-# dicHitos <- data_frame(compromiso = dataContraparte$Compromiso,
-#                        idF = dataContraparte$id,
-#                        organizacion = dataContraparte$Organización,
-#                        dataContraparte[,indHito])
 
 dataContraparte <- dataContraparte %>% 
   tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") 
 dataContraparte <- dataContraparte[ !duplicated(dataContraparte[, c("Compromiso", "hito")], fromLast=T),]
 
-#dicHitos <- dicHitos %>% arrange(-idF) %>% distinct(compromiso, organizacion, hito, .keep_all = T) %>% select(-organizacion)
-#dicHitos <- dicHitos %>% rename("Id" = "idF")
-#dataContraparte <- dataContraparte[,-indHito]
 
 dataContraparte <- dataContraparte %>% dplyr::rename(c( "estado_contraparte" = "Indicador 2",
                                                         "entidad_responsable" = "Indicador 3 - entidad",
@@ -191,8 +179,7 @@ dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "
                                                         "fecha_registro_grupoNucleo" = "Fecha de registro")) 
 
 
-#dataGrupoNucleo <- dataGrupoNucleo[,c(-1,-2,-3)]
-#dataGrupoNucleo <- dataGrupoNucleo %>% inner_join(dicHitos) 
+
 l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
   dataGrupoNucleo[[i]] <<- trimws(gsub("\n", " ", trimws(dataGrupoNucleo[[i]])))
 })
