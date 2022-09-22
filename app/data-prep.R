@@ -166,7 +166,6 @@ indHito <- grep("Hito", names(dataGrupoNucleo))
 dataGrupoNucleo <- dataGrupoNucleo %>% 
   tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") %>% dplyr::select(-numHito)
-dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("Compromiso", "hito")], fromLast=T),]
 
 dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "Indicador 2",
                                                         "entidad_responsable_gn" = "Indicador 3 - entidad - grupo nucleo",
@@ -183,14 +182,10 @@ dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "
 l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
   dataGrupoNucleo[[i]] <<- trimws(gsub("\n", " ", trimws(dataGrupoNucleo[[i]])))
 })
-dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::distinct(compromiso, hito, .keep_all = T)
-unique(dataGrupoNucleo$hito)
 dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "id",
                                               "CreatedAtGrupoNucleo" = "created_at",
                                               "UpdatedAtGrupoNucleo" = "updated_at")
-
-
-
+dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("compromiso", "hito")], fromLast=T),]
 
 data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
 
