@@ -50,7 +50,7 @@ compromisos <- compromisos %>% filter(!(contacto == "Lorena Raquel Escobar Perez
 compromisos <- compromisos %>% filter(!(contacto == "Felipe Ochoa" & contraparte == "Fundación Esquel"))
 compromisos <- compromisos %>% filter(!(contacto == "Polo Fabian Iñiguez Matute" & entidad == "Presidencia de la República del Ecuador"))
 compromisos <- compromisos %>% filter(!(contacto == "Mario Paúl Cabezas" & entidad == "Ministerio de Telecomunicaciones y de la Sociedad de la Información"))
-
+compromisos$hito[compromisos$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
 
 
 # E N T I D A D E S
@@ -102,6 +102,7 @@ dataEntidades <- dataEntidades %>% rename("IdEntidades" = "id",
                                           "UpdatedAtEntidad" = "updated_at")
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
 dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
+dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
 dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
 
@@ -119,7 +120,6 @@ indHito <- grep("Hito", names(dataContraparte))
 dataContraparte <- dataContraparte %>% 
   tidyr::gather("numHito","hito", indHito) %>% 
   tidyr::drop_na(hito) %>% dplyr::filter(hito != "") 
-dataContraparte <- dataContraparte[ !duplicated(dataContraparte[, c("Compromiso", "hito")], fromLast=T),]
 
 
 dataContraparte <- dataContraparte %>% dplyr::rename(c( "estado_contraparte" = "Indicador 2",
@@ -143,6 +143,10 @@ dataContraparte <- dataContraparte %>% rename("IdContraparte" = "id",
                                               "UpdatedAtContraparte" = "updated_at")
 dataContraparte$fecha_registro_contraparte <- lubridate::as_date(dataContraparte$fecha_registro_contraparte)
 dataContraparte <- dataContraparte %>% filter(!contraparte_persona_formulario %in% "test")
+dataContraparte$hito[dataContraparte$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
+dataContraparte <- dataContraparte[ !duplicated(dataContraparte[, c("compromiso", "hito")], fromLast=T),]
+
+
 # J O I N 
 data_all <- data_all %>% dplyr::full_join(dataContraparte)
 
@@ -185,7 +189,9 @@ l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
 dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "id",
                                               "CreatedAtGrupoNucleo" = "created_at",
                                               "UpdatedAtGrupoNucleo" = "updated_at")
+dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
 dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("compromiso", "hito")], fromLast=T),]
+
 
 data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
 
