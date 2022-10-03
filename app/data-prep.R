@@ -172,7 +172,19 @@ highchart() %>%
   )
 
 
+###### GRAFICO 2
 
+df_avance <- data_all %>% group_by(compromiso) %>% summarise(avance = mean(avance, na.rm = T))
+df_avance$order <- paste0("Compromiso ", 1:nrow(df_avance))
+df_avance <- df_avance %>% dplyr::select(order, avance, compromiso)
+library(hgchmagic)
+hgch_bar_CatNum(df_avance, y_max = 100,
+                order = df_avance$order,
+                ver_title = " ",
+                hor_title = " ",
+                suffix = " %",
+                dataLabels_show = T,
+                tooltip = "<b>{compromiso}</b><br/>Porcentaje de avance: {avance}%")
 
 # C O N T R A P A R T E
 
