@@ -58,61 +58,6 @@ urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/
 infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 
-avance <- mean(dataEntidades$`Indicador 1`, na.rm = T)
-dfViz <- data.frame(
-  etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
-  id_T = c("a", "a"),
-  avance = c(avance, 100-avance)
-)
-library(highcharter)
-highchart() %>% 
-  hc_chart(
-    type = 'bar'
-  ) %>% 
-  hc_xAxis(
-    visible = F,
-    type = "category",
-    categories =  list("a", "a"),
-    labels = list(
-      enabled =  F
-    )
-  ) %>% 
-  hc_yAxis(
-    visible = F,
-    min = 0,
-    max = 100,
-    labels = list(
-      enabled =  F
-    )
-  ) %>%
-  hc_legend(enabled = F) %>% 
-  hc_plotOptions(
-    series = list(
-      dataLabels = list(
-        enabled =  TRUE,
-        format = '{series.name}: <b>{point.y:.2f}%</b><br/>'
-    ),
-      stacking= 'normal'
-    )
-  ) %>%
-  hc_add_series_list(
-    list(
-      list(
-        name = "Porcentaje que falta para el cumplimiento total del plan",
-        data = list(100-avance),
-        color = "red"
-      ),
-      list(
-        name = "Porcentaje total de cumplimiento del plan",
-        data = list(avance),
-        color = "yellow"
-      )
-    )
-  ) %>% 
-  hc_tooltip(
-    headerFormat = " ",
-    pointFormat = '{series.name}: <b>{point.y:.2f}%</b><br/>'
-  )
 
 indHito <- grep("Hito", names(dataEntidades))
 
@@ -160,6 +105,69 @@ dataEntidades <- dataEntidades %>% rename("IdEntidades" = "id",
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
 dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
 dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
+
+####3 GRAFICO 1
+
+avance <- mean(as.numeric(dataEntidades$avance), na.rm = T)
+dfViz <- data.frame(
+  etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
+  id_T = c("a", "a"),
+  avance = c(avance, 100-avance)
+)
+library(highcharter)
+highchart() %>% 
+  hc_chart(
+    type = 'bar'
+  ) %>% 
+  hc_xAxis(
+    visible = F,
+    type = "category",
+    categories =  list("a", "a"),
+    labels = list(
+      enabled =  F
+    )
+  ) %>% 
+  hc_yAxis(
+    visible = F,
+    min = 0,
+    max = 100,
+    labels = list(
+      enabled =  F
+    )
+  ) %>%
+  hc_legend(enabled = F) %>% 
+  hc_plotOptions(
+    series = list(
+      dataLabels = list(
+        enabled =  TRUE,
+        format = '{series.name}: <b>{point.y:.2f}%</b><br/>'
+      ),
+      stacking= 'normal'
+    )
+  ) %>%
+  hc_add_series_list(
+    list(
+      list(
+        name = "Porcentaje que falta para el cumplimiento total del plan",
+        data = list(100-avance),
+        color = "red"
+      ),
+      list(
+        name = "Porcentaje total de cumplimiento del plan",
+        data = list(avance),
+        color = "yellow"
+      )
+    )
+  ) %>% 
+  hc_tooltip(
+    headerFormat = " ",
+    pointFormat = '{series.name}: <b>{point.y:.2f}%</b><br/>'
+  )
+
+
+
+
+
 
 
 data_all <- compromisos %>% left_join(dataEntidades)
