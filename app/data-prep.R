@@ -106,9 +106,16 @@ dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha
 dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
 dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
-####3 GRAFICO 1
 
-avance <- mean(as.numeric(dataEntidades$avance), na.rm = T)
+### base de datos que une la base de compromisos con entidades
+data_all <- compromisos %>% left_join(dataEntidades)
+# los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
+data_all$avance[is.na(data_all$avance)] <- 0 
+
+
+####### GRAFICO 1
+
+avance <- mean(as.numeric(data_all$avance), na.rm = T)
 dfViz <- data.frame(
   etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
   id_T = c("a", "a"),
@@ -165,12 +172,6 @@ highchart() %>%
   )
 
 
-
-
-
-
-
-data_all <- compromisos %>% left_join(dataEntidades)
 
 
 # C O N T R A P A R T E
