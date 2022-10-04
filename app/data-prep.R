@@ -212,7 +212,7 @@ dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 1: Validación de la polític
 dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("compromiso", "hito")], fromLast=T),]
 
 
-data_fin <- data_all %>% dplyr::left_join(dataGrupoNucleo)
+data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
 
 
 data_fin$avance <- as.numeric(data_fin$avance)

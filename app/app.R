@@ -564,6 +564,7 @@ server <- function(input, output, session) {
       df <- df[,c(var_s, "resultados_grupoNucleo","hito_id", "cmp_esperado", "hito")]
       df <- df %>% dplyr::rename(c("Contraparte" = var_s,
                                    "Grupo Núcleo" = "resultados_grupoNucleo"))
+      print(df)
       df <- df %>% gather("tipo", "resultados", c("Contraparte", "Grupo Núcleo"))
       df$value <- plyr::revalue(df$resultados, c("Se mantuvo igual" = 1, "Mejoró un poco" = 3, "Mejoró sustancialmente" = 5))
       df <- df %>% select(tipo, hito_id, value, everything())
