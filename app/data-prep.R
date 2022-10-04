@@ -57,6 +57,8 @@ compromisos$hito[compromisos$hito == "Hito 1: Validación de la política de dat
 urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
 infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
+
+
 indHito <- grep("Hito", names(dataEntidades))
 
 dataEntidades <- dataEntidades %>% group_by(Compromiso) %>% mutate(idF = cur_group_id())
@@ -106,8 +108,84 @@ dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de
 dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
 
+### base de datos que une la base de compromisos con entidades
 data_all <- compromisos %>% left_join(dataEntidades)
+# los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
+data_all$avance[is.na(data_all$avance)] <- 0 
 
+
+####### GRAFICO 1
+
+avance <- mean(as.numeric(data_all$avance), na.rm = T)
+dfViz <- data.frame(
+  etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
+  id_T = c("a", "a"),
+  avance = c(avance, 100-avance)
+)
+library(highcharter)
+highchart() %>% 
+  hc_chart(
+    type = 'bar'
+  ) %>% 
+  hc_xAxis(
+    visible = F,
+    type = "category",
+    categories =  list("a", "a"),
+    labels = list(
+      enabled =  F
+    )
+  ) %>% 
+  hc_yAxis(
+    visible = F,
+    min = 0,
+    max = 100,
+    labels = list(
+      enabled =  F
+    )
+  ) %>%
+  hc_legend(enabled = F) %>% 
+  hc_plotOptions(
+    series = list(
+      dataLabels = list(
+        enabled =  TRUE,
+        format = '{series.name}: <b>{point.y:.2f}%</b><br/>'
+      ),
+      stacking= 'normal'
+    )
+  ) %>%
+  hc_add_series_list(
+    list(
+      list(
+        name = "Porcentaje que falta para el cumplimiento total del plan",
+        data = list(100-avance),
+        color = "red"
+      ),
+      list(
+        name = "Porcentaje total de cumplimiento del plan",
+        data = list(avance),
+        color = "yellow"
+      )
+    )
+  ) %>% 
+  hc_tooltip(
+    headerFormat = " ",
+    pointFormat = '{series.name}: <b>{point.y:.2f}%</b><br/>'
+  )
+
+
+###### GRAFICO 2
+
+df_avance <- data_all %>% group_by(compromiso) %>% summarise(avance = mean(as.numeric(avance), na.rm = T))
+df_avance$order <- paste0("Compromiso ", 1:nrow(df_avance))
+df_avance <- df_avance %>% dplyr::select(order, avance, compromiso)
+library(hgchmagic)
+hgch_bar_CatNum(df_avance, y_max = 100,
+                order = df_avance$order,
+                ver_title = " ",
+                hor_title = " ",
+                suffix = " %",
+                dataLabels_show = T,
+                tooltip = "<b>{compromiso}</b><br/>Porcentaje de avance: {avance}%")
 
 # C O N T R A P A R T E
 
