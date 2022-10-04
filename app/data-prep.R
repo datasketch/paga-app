@@ -174,7 +174,7 @@ highchart() %>%
 
 ###### GRAFICO 2
 
-df_avance <- data_all %>% group_by(compromiso) %>% summarise(avance = mean(avance, na.rm = T))
+df_avance <- data_all %>% group_by(compromiso) %>% summarise(avance = mean(as.numeric(avance), na.rm = T))
 df_avance$order <- paste0("Compromiso ", 1:nrow(df_avance))
 df_avance <- df_avance %>% dplyr::select(order, avance, compromiso)
 library(hgchmagic)
