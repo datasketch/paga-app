@@ -521,7 +521,8 @@ server <- function(input, output, session) {
     } else if (last_indicator() %in% "sectores") {
       req(id_viz())
       df <- df[,c(var_s, "hito_id", "cmp_esperado", "hito")]
-      df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",")
+      print(df)
+      df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",|\\-|\\|")
       if (id_viz() == "donut") {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
@@ -569,7 +570,7 @@ server <- function(input, output, session) {
       #df <- df %>% bind_rows(data.frame(tipo = "Grupo Núcleo", hito_id = df$hito_id[1], value = NA))
     } else if (last_indicator() %in% "relacion_internacional") {
       df <- df[,c("relacion_internacional_descripcion", "hito_id", var_s, "cmp_esperado", "hito", "relacion_internacional_justificacion")]
-      df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",")
+      df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",|\\-|\\|")
       df$relacion_internacional_descripcion <- trimws(df$relacion_internacional_descripcion)
       print(unique(df$hito_id))
       if (id_viz() == "donut") {
