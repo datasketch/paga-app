@@ -263,7 +263,7 @@ ui <- panelsPage(
   styles = style,
   panel(title = "Indicadores",
         id = "azul",
-        width = 350,
+        width = 300,
         body = div(
           uiOutput("basicos")
         ),
@@ -273,6 +273,7 @@ ui <- panelsPage(
         id = "naranja",
         header_right = uiOutput("descargas"),
         can_collapse = FALSE,
+        width = 900,
         color = "chardonnay", #div(add_busy_spinner(spin = "fading-circle"),uiOutput("final_viz"))
         body = div(
           uiOutput("commitment"),
