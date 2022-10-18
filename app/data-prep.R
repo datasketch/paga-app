@@ -105,11 +105,13 @@ dataEntidades <- dataEntidades %>% rename("IdEntidades" = "id",
 dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
 dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
 dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
-dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
+#dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
 
 ### base de datos que une la base de compromisos con entidades
 data_all <- compromisos %>% left_join(dataEntidades)
+data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito", "entidad", "contraparte")], fromLast=T),]
+
 # los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
 data_all$avance[is.na(data_all$avance)] <- 0 
 data_all$avance <- as.numeric(data_all$avance)
@@ -163,11 +165,11 @@ dataContraparte <- dataContraparte %>% rename("IdContraparte" = "id",
 dataContraparte$fecha_registro_contraparte <- lubridate::as_date(dataContraparte$fecha_registro_contraparte)
 dataContraparte <- dataContraparte %>% filter(!contraparte_persona_formulario %in% "test")
 dataContraparte$hito[dataContraparte$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
-dataContraparte <- dataContraparte[ !duplicated(dataContraparte[, c("compromiso", "hito")], fromLast=T),]
 
 
 # J O I N 
 data_all <- data_all %>% dplyr::left_join(dataContraparte)
+data_all <- data_all[ !duplicated(data_all[, c("compromiso", "hito", "contraparte", "entidad")], fromLast=T),]
 
 data_all$avance[is.na(data_all$avance)] <- 0
 
@@ -213,6 +215,7 @@ dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("compromiso"
 
 
 data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
+data_fin <- data_fin[ !duplicated(data_fin[, c("compromiso", "hito", "contraparte", "entidad")], fromLast=T),]
 
 
 data_fin$avance <- as.numeric(data_fin$avance)
