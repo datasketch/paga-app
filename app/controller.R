@@ -9,7 +9,7 @@ getData <- function() {
   
   # C O M P R O M I S O S
   urlCompromisos <-
-    "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/info-general-compromisos?limit=100000"
+    "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/info-general-compromisos?limit=false"
   infoCompromisos <-
     httr::GET(urlCompromisos, add_headers("xc-auth" = noco_key))
   compromisos <-
@@ -76,7 +76,7 @@ getData <- function() {
   
   # E N T I D A D E S
   urlEntidades <-
-    "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
+    "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=false"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
   infoEntidades <-
     httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
   dataEntidades <-

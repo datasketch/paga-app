@@ -16,7 +16,7 @@ noco_key <- Sys.getenv("API_TOKEN")
 
 
 # C O M P R O M I S O S
-urlCompromisos <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/info-general-compromisos?limit=100000"
+urlCompromisos <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/info-general-compromisos?limit=false"
 infoCompromisos <- httr::GET(urlCompromisos, add_headers("xc-auth" = noco_key))
 compromisos <- httr::content(infoCompromisos) %>% dplyr::bind_rows()
 compromisos <- Filter(function(x) !all(is.na(x)), compromisos)
@@ -54,7 +54,7 @@ compromisos$hito[compromisos$hito == "Hito 1: Validación de la política de dat
 
 
 # E N T I D A D E S
-urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
+urlEntidades <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/entidades?limit=false"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/Entidadess"
 infoEntidades <- httr::GET(urlEntidades, add_headers(`xc-auth` = noco_key))
 dataEntidades <- httr::content(infoEntidades) %>% dplyr::bind_rows()
 
@@ -132,7 +132,7 @@ df_avance <- df_avance %>% dplyr::select(order, avance, compromiso)
 
 # C O N T R A P A R T E
 
-urlContraparte <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes?limit=100000"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes"
+urlContraparte <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes?limit=false"#"https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/contrapartes"
 infoContraparte <- httr::GET(urlContraparte, add_headers(`xc-auth` = noco_key))
 dataContraparte <- httr::content(infoContraparte) %>% dplyr::bind_rows()
 
@@ -179,7 +179,7 @@ unique(compromisos$tematica)
 
 # G R U P O N U C L E O
 
-urlGrupoNucleo <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/grupo-nucleo?limit=100000"
+urlGrupoNucleo <- "https://datos-prueba.paga.datasketch.co/nc/avances_le91/api/v1/grupo-nucleo?limit=false"
 infoGrupoNucleo <- httr::GET(urlGrupoNucleo, add_headers(`xc-auth` = noco_key))
 dataGrupoNucleo <- httr::content(infoGrupoNucleo) %>% dplyr::bind_rows()
 
