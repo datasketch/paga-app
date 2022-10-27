@@ -503,32 +503,35 @@ server <- function(input, output, session) {
     req(last_indicator())
     df <- data_filter()
     var_s <- last_indicator()
-    
+    #c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd")
     if (last_indicator() %in% "estado") {
       df <- df[,c(var_s, "hito_id", "estado_contraparte", "estado_grupoNucleo", "cmp_esperado", "hito")]
       
-      df <- df %>% plyr::rename(c("estado" = "Entidad responsable", "estado_contraparte" = "Contraparte", "estado_grupoNucleo" = "Grupo Nucleo"))
-      df <- df %>% gather("tipo", "estado", c("Entidad responsable", "Contraparte", "Grupo Nucleo"))
+      df <- df %>% plyr::rename(c("estado" = "Entidad responsable", "estado_contraparte" = "Contraparte", "estado_grupoNucleo" = "Grupo Núcleo"))
+      df <- df %>% gather("tipo", "estado", c("Entidad responsable", "Contraparte", "Grupo Núcleo"))
       df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 4, "Ejecución" = 3, "Planificación" = 2, "Definición" = 1, "Detenido" = 0))
       df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito) %>% tidyr::drop_na(estado)
     } else if (last_indicator() %in% "avance") {
+      
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
       df$avance[is.na(df$avance)] <- 0
       df$`Porcentaje de no cumplimiento` <- (100 - df$avance)
       df <- df %>% plyr::rename(c("avance" = "Porcentaje de cumplimiento"))
       df <- df %>% gather("avance", "porcentaje", c("Porcentaje de cumplimiento", "Porcentaje de no cumplimiento"))
       df <- df %>% select(avance, hito_id, porcentaje, everything()) #%>% filter(porcentaje>0)
+      df$...colors <- ifelse(df$avance == "Porcentaje de cumplimiento", "#0076b7", "#293662")
+      
     } else if (last_indicator() %in% "sectores") {
+      #print("sectores")
       req(id_viz())
       df <- df[,c(var_s, "hito_id", "cmp_esperado", "hito")]
-      print(df)
+      #print(df)
       df <- df %>% separate_rows(sectores, convert = TRUE, sep = ",|\\-|\\|")
       if (id_viz() == "donut") {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
       }
       df$sectores <- trimws(df$sectores) 
-      #
     } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_grupoNucleo", "entidad_grupoNucleo")) {
       if (last_indicator() == "contraparte_responsable") {
         df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
@@ -564,7 +567,6 @@ server <- function(input, output, session) {
       df <- df[,c(var_s, "resultados_grupoNucleo","hito_id", "cmp_esperado", "hito")]
       df <- df %>% dplyr::rename(c("Contraparte" = var_s,
                                    "Grupo Núcleo" = "resultados_grupoNucleo"))
-      print(df)
       df <- df %>% gather("tipo", "resultados", c("Contraparte", "Grupo Núcleo"))
       df$value <- plyr::revalue(df$resultados, c("Se mantuvo igual" = 1, "Mejoró un poco" = 3, "Mejoró sustancialmente" = 5))
       df <- df %>% select(tipo, hito_id, value, everything())
@@ -573,7 +575,6 @@ server <- function(input, output, session) {
       df <- df[,c("relacion_internacional_descripcion", "hito_id", var_s, "cmp_esperado", "hito", "relacion_internacional_justificacion")]
       df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",|\\-|\\|")
       df$relacion_internacional_descripcion <- trimws(df$relacion_internacional_descripcion)
-      print(unique(df$hito_id))
       if (id_viz() == "donut") {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
@@ -606,6 +607,11 @@ server <- function(input, output, session) {
         }
       }
     }
+    
+    if ("tipo" %in% names(df)) {
+      df$...colors <- dplyr::recode(df$tipo, "Entidad responsable" = "#0076b7", "Contraparte" = "#ff4e17", "Grupo Núcleo" = "#78dda0")
+    }
+    
     df
   })
   
@@ -642,22 +648,22 @@ server <- function(input, output, session) {
       order_s <-  rev(unique(df$avance))
       legendRev <- TRUE
       showLabels <- TRUE
-      colors <- c("#0076b7", "#293662", "#0076b7", "#293662")
-      if (length(order_s) == 1) {
-        if (order_s == "Porcentaje de cumplimiento") colors <- colors[1]
-        if (order_s == "Porcentaje de no cumplimiento") colors <- colors[2]
-      }
+      #colors <- c("#0076b7", "#293662", "#0076b7", "#293662")
+      # if (length(order_s) == 1) {
+      #   if (order_s == "Porcentaje de cumplimiento") colors <- colors[1]
+      #   if (order_s == "Porcentaje de no cumplimiento") colors <- colors[2]
+      # }
     } else if (id_button == "estado") {
       tx <- "<b>{tipo}</b> <br/>{hito}<br/> <b>Estado: {estado}</b>"
       fjs <- JS("function () {var arreglo = ['Detenido','Definición','Planificación', 'Ejecución', 'Completado'];return arreglo[this.value];}")
       order_s <- c("Entidad responsable", "Contraparte","Grupo Núcleo")
       yMax <- 4
       #labelsRotationY <- 45
-      colors <- c("#0076b7","#ff4e17", "#78dda0")
+      #colors <- c("#0076b7","#ff4e17", "#78dda0")
     } else if (id_button == "contraparte_responsable") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso: {contraparte_responsable} </b> <br/><br/>Da click para más información"
       c("Entidad responsable", "Grupo Núcleo")
-      colors <- c("#0076b7", "#78dda0")
+      #colors <- c("#0076b7", "#78dda0")
       cursor <- "pointer"
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
@@ -665,20 +671,20 @@ server <- function(input, output, session) {
     } else if (id_button == "entidad_responsable") {
       tx <- "{hito}<br/> <b>La entidad responsable ha responido con sus responsabilidades con la contraparte: {entidad_responsable} </b>  <br/><br/>Da click para más información"
       order_s <- order_s <- c("Contraparte", "Grupo Núcleo")
-      colors <- c("#ff4e17", "#78dda0")
+      #colors <- c("#ff4e17", "#78dda0")
       cursor <- "pointer"
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     }  else if (id_button == "contraparte_grupoNucleo") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo: {contraparte_responsable} </b>  <br/>"
-      colors <- c( "#78dda0")
+      #colors <- c( "#78dda0")
       cursor <- "pointer"
       yMax <- 4
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "entidad_grupoNucleo") {
       tx <- "{hito}<br/> <b>La entidad ha respondido con sus responsabilidades con el Grupo Núcleo: {entidad_responsable} </b>  <br/>"
-      colors <- c("#78dda0")
+      #colors <- c("#78dda0")
       cursor <- "pointer"
       yMax <- 4
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
@@ -711,7 +717,7 @@ server <- function(input, output, session) {
       tx <- "{hito} <br/> <b>Percepción de resultados: {resultados}</b>  <br/><br/>Da click para más información"
       fjs <- JS("function () {var arreglo = ['','Se mantuvo igual', '','Mejoró un poco','' ,'Mejoró sustancialmente'];return arreglo[this.value];}")
       order_s <- c("Contraparte", "Grupo Núcleo")
-      colors <- c("#0076b7", "#78dda0")
+      #colors <- c("#0076b7", "#78dda0")
       cursor <- "pointer"
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       yMax <- 5
