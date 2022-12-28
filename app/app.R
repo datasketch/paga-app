@@ -515,12 +515,13 @@ server <- function(input, output, session) {
       
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
       df$avance[is.na(df$avance)] <- 0
-      df$`Porcentaje de no cumplimiento` <- (100 - df$avance)
+      df$avance <- df$avance
+      df$`Porcentaje de no cumplimiento` <- 100 - df$avance
       df <- df %>% plyr::rename(c("avance" = "Porcentaje de cumplimiento"))
       df <- df %>% gather("avance", "porcentaje", c("Porcentaje de cumplimiento", "Porcentaje de no cumplimiento"))
       df <- df %>% select(avance, hito_id, porcentaje, everything()) #%>% filter(porcentaje>0)
       df$...colors <- ifelse(df$avance == "Porcentaje de cumplimiento", "#0076b7", "#293662")
-      
+      print(tail(df))
     } else if (last_indicator() %in% "sectores") {
       #print("sectores")
       req(id_viz())
@@ -578,11 +579,15 @@ server <- function(input, output, session) {
       df <- df[,c("relacion_internacional_descripcion", "hito_id", var_s, "cmp_esperado", "hito", "relacion_internacional_justificacion")]
       df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",|\\-|\\|")
       df$relacion_internacional_descripcion <- trimws(df$relacion_internacional_descripcion)
+      df <- df |> tidyr::drop_na(relacion_internacional_descripcion) 
+      df$value <- 1
+      df <- df |> dplyr::select(relacion_internacional_descripcion, hito_id, value, dplyr::everything())
+      
       if (id_viz() == "donut") {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
       }
-      #df$relacion_internacional_descripcion[is.na(df$relacion_internacional_descripcion)] <- "NA"
+            #df$relacion_internacional_descripcion[is.na(df$relacion_internacional_descripcion)] <- "NA"
     } else {
       df <- df[,c("hito_id", var_s, "cmp_esperado", "hito")]
     }
@@ -733,7 +738,7 @@ server <- function(input, output, session) {
       yEnabled <- FALSE
       #marginBottom <- 50
       if (id_viz() == "donut") {
-        colorDonut <- "relacion_internacional"
+        colorDonut <- "relacion_internacional_descripcion"
         legendShow <- FALSE
       }
       #colors <- c("#293662", "#78dda0")
@@ -785,21 +790,18 @@ server <- function(input, output, session) {
     format_x_js <- NULL
     axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
     
-    print(axisColor)
+ 
     if (nrow(axisColor) != 0) {
       axisColor <- unique(axisColor$hito_id)
       hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
       format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color:#109a4f !important;fill:#109a4f !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
-    print(format_x_js)
-    
+
     graph_type <- "grouped"
-    if (last_indicator() %in% c("avance", "sectores")) {
+    if (last_indicator() %in% c("avance", "sectores", "relacion_internacional")) {
       graph_type = "stacked"
     }
-    
-    print(data_select())
-    
+  
     list(
       data = data_select(),
       plot_margin_bottom = opts_plot()$marginBottom,
@@ -858,9 +860,9 @@ server <- function(input, output, session) {
     if (last_indicator() %in% c("actividades", "participantes", "estrategias_grupoNucleo")) {
       viz <- "CatNum"
     }
-    if (last_indicator() %in% c("relacion_internacional")) {
-      viz <- "CatCat"
-    }
+    # if (last_indicator() %in% c("relacion_internacional")) {
+    #   viz <- "CatCat"
+    # }
     if (id_viz() == "donut") {
       viz <- "Cat"
     }
