@@ -273,7 +273,7 @@ ui <- panelsPage(
         id = "naranja",
         header_right = uiOutput("descargas"),
         can_collapse = FALSE,
-        width = 900,
+        #width = 900,
         color = "chardonnay", #div(add_busy_spinner(spin = "fading-circle"),uiOutput("final_viz"))
         body = div(
           uiOutput("commitment"),
@@ -374,7 +374,7 @@ server <- function(input, output, session) {
       l[[button_id]] <- div(l[[button_id]],
                     radioButtons("sub_cumplimiento",
                                  " ", 
-                                 setNames(c("contraparte_responsable", "entidad_responsable", "contraparte_grupoNucleo", "entidad_grupoNucleo"), 
+                                 setNames(c("contraparte_grupoNucleo", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn"), 
                                           c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
                                             "3.2 ¿La entidad responsable ha respondido con sus responsabilidades con la contraparte?",
                                             "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
@@ -532,31 +532,31 @@ server <- function(input, output, session) {
         df <- df %>% filter(hito %in% input$hitoSel)
       }
       df$sectores <- trimws(df$sectores) 
-    } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_grupoNucleo", "entidad_grupoNucleo")) {
-      if (last_indicator() == "contraparte_responsable") {
+    } else if (last_indicator() %in% c("contraparte_grupoNucleo", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn")) {
+      if (last_indicator() == "contraparte_grupoNucleo") {
         df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
-        df <- df %>% dplyr::rename(c("Entidad responsable" = "contraparte_responsable",
+        df <- df %>% dplyr::rename(c("Entidad responsable" = "contraparte_grupoNucleo",
                                      "Grupo Núcleo" = "entidad_responsable_gn"))
         df <- df %>% gather("tipo", "value", c("Entidad responsable", "Grupo Núcleo"))
-        df$contraparte_responsable <- df$value
+        df$contraparte_grupoNucleo <- df$value
       }
-      if (last_indicator() == "entidad_responsable") {
+      if (last_indicator() == "entidad_grupoNucleo") {
         df <- df[,c(var_s,"contraparte_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
-        df <- df %>% dplyr::rename(c("Contraparte" = "entidad_responsable",
+        df <- df %>% dplyr::rename(c("Contraparte" = "entidad_grupoNucleo",
                                      "Grupo Núcleo" = "contraparte_responsable_gn"))
         df <- df %>% gather("tipo", "value", c("Contraparte", "Grupo Núcleo"))
         df$entidad_responsable <- df$value
       }
-      if (last_indicator() %in% c("contraparte_grupoNucleo")) {
+      if (last_indicator() %in% c("contraparte_responsable_gn")) {
         df <- df[,c(var_s,"hito_id", "cmp_esperado", "hito")]
-        df <- df %>% dplyr::rename(c("Grupo Núcleo" = "contraparte_grupoNucleo"))
+        df <- df %>% dplyr::rename(c("Grupo Núcleo" = "contraparte_responsable_gn"))
         df$value <- ifelse(df$`Grupo Núcleo` == "si", "Sí", df$`Grupo Núcleo`)
         df$contraparte_responsable <- df$`Grupo Núcleo`
         df$tipo <- "Grupo Núcleo"
       }
-      if (last_indicator() %in% c("entidad_grupoNucleo")) {
+      if (last_indicator() %in% c("entidad_responsable_gn")) {
         df <- df[,c(var_s,"hito_id", "cmp_esperado", "hito")]
-        df <- df %>% dplyr::rename(c("Grupo Núcleo" = "entidad_grupoNucleo"))
+        df <- df %>% dplyr::rename(c("Grupo Núcleo" = "entidad_responsable_gn"))
         df$value <- df$`Grupo Núcleo`
         df$entidad_responsable <- df$`Grupo Núcleo`
         df$tipo <- "Grupo Núcleo"
@@ -611,7 +611,6 @@ server <- function(input, output, session) {
     if ("tipo" %in% names(df)) {
       df$...colors <- dplyr::recode(df$tipo, "Entidad responsable" = "#0076b7", "Contraparte" = "#ff4e17", "Grupo Núcleo" = "#78dda0")
     }
-    
     df
   })
   
@@ -659,30 +658,30 @@ server <- function(input, output, session) {
       order_s <- c("Entidad responsable", "Contraparte","Grupo Núcleo")
       yMax <- 4
       #labelsRotationY <- 45
-      #colors <- c("#0076b7","#ff4e17", "#78dda0")
-    } else if (id_button == "contraparte_responsable") {
-      tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso: {contraparte_responsable} </b> <br/><br/>Da click para más información"
-      c("Entidad responsable", "Grupo Núcleo")
+      #colors <- c("#0076b7","#ff4e17", "#78dda0") #c("", "", "", "")
+    } else if (id_button == "contraparte_grupoNucleo") {
+      tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso: {contraparte_grupoNucleo} </b> <br/><br/>Da click para más información"
+      order_s <- c("Entidad responsable", "Grupo Núcleo")
       #colors <- c("#0076b7", "#78dda0")
       cursor <- "pointer"
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       fjs <- JS("function () {var arreglo = ['','No', '' , 'Sí'];return arreglo[this.value];}")
-    } else if (id_button == "entidad_responsable") {
+    } else if (id_button == "entidad_grupoNucleo") {
       tx <- "{hito}<br/> <b>La entidad responsable ha responido con sus responsabilidades con la contraparte: {entidad_responsable} </b>  <br/><br/>Da click para más información"
-      order_s <- order_s <- c("Contraparte", "Grupo Núcleo")
+      order_s <- c("Contraparte", "Grupo Núcleo")
       #colors <- c("#ff4e17", "#78dda0")
       cursor <- "pointer"
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
-    }  else if (id_button == "contraparte_grupoNucleo") {
+    }  else if (id_button == "contraparte_responsable_gn") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo: {contraparte_responsable} </b>  <br/>"
       #colors <- c( "#78dda0")
       cursor <- "pointer"
       yMax <- 4
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
-    } else if (id_button == "entidad_grupoNucleo") {
+    } else if (id_button == "entidad_responsable_gn") {
       tx <- "{hito}<br/> <b>La entidad ha respondido con sus responsabilidades con el Grupo Núcleo: {entidad_responsable} </b>  <br/>"
       #colors <- c("#78dda0")
       cursor <- "pointer"
@@ -782,20 +781,21 @@ server <- function(input, output, session) {
     
     format_x_js <- NULL
     axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
-    #print(axisColor)
+    
+    print(axisColor)
     if (nrow(axisColor) != 0) {
       axisColor <- unique(axisColor$hito_id)
       hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
       format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color:#109a4f !important;fill:#109a4f !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
-    #print(format_x_js)
+    print(format_x_js)
     
     graph_type <- "grouped"
     if (last_indicator() %in% c("avance", "sectores")) {
       graph_type = "stacked"
     }
     
-    
+    print(data_select())
     
     list(
       data = data_select(),
