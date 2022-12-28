@@ -212,6 +212,12 @@ dataGrupoNucleo <- dataGrupoNucleo %>% rename("IdGrupoNucleo" = "id",
                                               "UpdatedAtGrupoNucleo" = "updated_at")
 dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
 dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("compromiso", "hito")], fromLast=T),]
+dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 4: Identificación y selección de indicadores para la medición de la implementación de la política de datos abiertos con la participación de actores mapeados"] <- "Hito 4: Identificación y selección de indicadores para la medición de la implementación de la política de datos abiertos con la participación de actores mapeados."
+dataGrupoNucleo$estrategias_grupoNucleo <- stringr::str_to_title(dataGrupoNucleo$estrategias_grupoNucleo)
+dataGrupoNucleo$estrategias_grupoNucleo[dataGrupoNucleo$estrategias_grupoNucleo == ""] <- NA
+dataGrupoNucleo$estrategias_grupoNucleo[dataGrupoNucleo$estrategias_grupoNucleo == "Si"] <- "Sí"
+dataGrupoNucleo$contraparte_grupoNucleo <- stringr::str_to_title(dataGrupoNucleo$contraparte_grupoNucleo)
+dataGrupoNucleo$contraparte_grupoNucleo[dataGrupoNucleo$contraparte_grupoNucleo == "Si"] <- "Sí"
 
 
 data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
