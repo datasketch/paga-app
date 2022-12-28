@@ -532,6 +532,9 @@ server <- function(input, output, session) {
         df <- df %>% filter(hito %in% input$hitoSel)
       }
       df$sectores <- trimws(df$sectores) 
+      df <- df |> tidyr::drop_na(sectores) 
+      df$value <- 1
+      df <- df |> dplyr::select(sectores, hito_id, value, dplyr::everything())
     } else if (last_indicator() %in% c("contraparte_grupoNucleo", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn")) {
       if (last_indicator() == "contraparte_grupoNucleo") {
         df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
@@ -855,7 +858,7 @@ server <- function(input, output, session) {
     if (last_indicator() %in% c("actividades", "participantes", "estrategias_grupoNucleo")) {
       viz <- "CatNum"
     }
-    if (last_indicator() %in% c("relacion_internacional", "sectores")) {
+    if (last_indicator() %in% c("relacion_internacional")) {
       viz <- "CatCat"
     }
     if (id_viz() == "donut") {

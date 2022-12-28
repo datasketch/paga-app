@@ -118,17 +118,17 @@ data_all$avance <- as.numeric(data_all$avance)
 
 ####### GRAFICO 1
 
-avance <- mean(as.numeric(data_all$avance), na.rm = T)
-dfViz <- data.frame(
-  etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
-  id_T = c("a", "a"),
-  avance = c(avance, 100-avance)
-)
-
-
-df_avance <- data_all %>% group_by(compromiso) %>% summarise(avance = mean(as.numeric(avance), na.rm = T))
-df_avance$order <- paste0("Compromiso ", 1:nrow(df_avance))
-df_avance <- df_avance %>% dplyr::select(order, avance, compromiso)
+# avance <- mean(as.numeric(data_all$avance), na.rm = T)
+# dfViz <- data.frame(
+#   etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
+#   id_T = c("a", "a"),
+#   avance = c(avance, 100-avance)
+# )
+# 
+# 
+# df_avance <- data_all %>% group_by(compromiso) %>% summarise(avance = mean(as.numeric(avance), na.rm = T))
+# df_avance$order <- paste0("Compromiso ", 1:nrow(df_avance))
+# df_avance <- df_avance %>% dplyr::select(order, avance, compromiso)
 
 # C O N T R A P A R T E
 
@@ -231,6 +231,9 @@ data_fin$actividades <- as.numeric(data_fin$actividades)
 data_fin$participantes <- as.numeric(data_fin$participantes)
 data_fin$hito_id <- stringr::str_extract(data_fin$hito, "Hito [0-9]")
 data_fin$cmp_esperado <- ifelse(lubridate::ymd(data_fin$fecha_finalizacion) < lubridate::ymd("2021-10-22"), "si", "no")
+data_fin$sectores <- gsub(",", "|", data_fin$sectores)
+data_fin$sectores <- gsub("entidad pública", "Entidad pública", data_fin$sectores)
+data_fin$sectores <- gsub("Sociedad civil", "Sociedad Civil", data_fin$sectores)
 data_fin
 # save(data_fin, file = "data/all_data.RData")
 
