@@ -372,14 +372,14 @@ server <- function(input, output, session) {
     l[[button_id]] <- HTML(paste0(paste(l[[button_id]], collapse = '')))
     if (indicator_choose() == "cumplimiento")
       l[[button_id]] <- div(l[[button_id]],
-                    radioButtons("sub_cumplimiento",
-                                 " ", 
-                                 setNames(c("contraparte_grupoNucleo", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn"), 
-                                          c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
-                                            "3.2 ¿La entidad responsable ha respondido con sus responsabilidades con la contraparte?",
-                                            "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
-                                            "3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?"
-                                          )))
+                            radioButtons("sub_cumplimiento",
+                                         " ", 
+                                         setNames(c("contraparte_grupoNucleo", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn"), 
+                                                  c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
+                                                    "3.2 ¿La entidad responsable ha respondido con sus responsabilidades con la contraparte?",
+                                                    "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
+                                                    "3.4 ¿La entidad responsable ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?"
+                                                  )))
       )
     output$basicos <- renderUI({
       l
@@ -394,7 +394,6 @@ server <- function(input, output, session) {
     if (p %in% c( "relacion_internacional", "sectores")) {
       v <- c("donut",v)
     }
-    
     v
   })
   
@@ -587,31 +586,41 @@ server <- function(input, output, session) {
         req(input$hitoSel)
         df <- df %>% filter(hito %in% input$hitoSel)
       }
-            #df$relacion_internacional_descripcion[is.na(df$relacion_internacional_descripcion)] <- "NA"
+      #df$relacion_internacional_descripcion[is.na(df$relacion_internacional_descripcion)] <- "NA"
     } else {
       df <- df[,c("hito_id", var_s, "cmp_esperado", "hito")]
     }
     
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       df <- data() %>% drop_na(estrategias_grupoNucleo)
+      df <- df[ !duplicated(df, fromLast=T, by = c("compromiso", "estrategias_grupoNucleo", "fecha_registro_grupoNucleo")),]
+      df <- df |> arrange(fecha_registro_grupoNucleo)
+      df <- df[ !duplicated(df[, c("compromiso")], fromLast=T),]
+      
       indComp <- data.frame(compromiso = unique(df$compromiso))
+     
       indComp$idCom <- paste0("Compromiso ", 1:nrow(indComp))
-      df <- df %>% left_join(indComp)
-      #df <- df %>% dplyr::select(-Id)
-      df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo, c("Sí" = 4, "No" = 2)))
+      df <- df %>% left_join(indComp, by = "compromiso") 
+     
+      
+      df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo,
+                                           c("Sí" = 4, "No" = 2)))
+  
       df <- df %>% select(idCom, value, "estrategias_grupoNucleo", everything())
     }
     
-    req(id_viz())
-    if (id_viz() != "donut") {
-      if (nrow(df) != 0) {
-        df_hitos <- data_filter() %>% select(hito_id, hito) %>% distinct()
-        
-        ind_hito <- setdiff(df_hitos$hito_id, unique(df$hito_id))
-        
-        if (!(identical(ind_hito, character()))) {
-          df_hitos <- df_hitos %>% filter(hito_id %in% ind_hito)
-          df <- df %>% bind_rows(df_hitos)
+    if (last_indicator() != "estrategias_grupoNucleo") {
+      req(id_viz())
+      if (id_viz() != "donut") {
+        if (nrow(df) != 0) {
+          df_hitos <- data_filter() %>% select(hito_id, hito) %>% distinct()
+          
+          ind_hito <- setdiff(df_hitos$hito_id, unique(df$hito_id))
+          
+          if (!(identical(ind_hito, character()))) {
+            df_hitos <- df_hitos %>% filter(hito_id %in% ind_hito)
+            df <- df %>% bind_rows(df_hitos)
+          }
         }
       }
     }
@@ -698,18 +707,18 @@ server <- function(input, output, session) {
     } else if (id_button == "actividades") {
       tx <- "{hito} <br/> <b>Número de actividades {actividades}</b> <br/><br/>Da click para más información"
       colors  <- "#293662"
-      yEnabled <- FALSE
-      cursor <- "pointer"
-      marginBottom <- 50
-      showLabels <- TRUE
-      myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
+        yEnabled <- FALSE
+        cursor <- "pointer"
+        marginBottom <- 50
+        showLabels <- TRUE
+        myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
     } else if (id_button == "participantes") {
       tx <- "{hito} <br/> <b>Número de participantes {participantes}</b>"
       colors  <- "#293662"
-      yEnabled <- FALSE
-      marginBottom <- 50
-      showLabels <- TRUE
-      #myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
+        yEnabled <- FALSE
+        marginBottom <- 50
+        showLabels <- TRUE
+        #myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
     } else if (id_button == "sectores") {
       tx <- "{hito} <br/> <b>Sector: {sectores}</b>"
       yMax <- 6
@@ -743,7 +752,7 @@ server <- function(input, output, session) {
       }
       #colors <- c("#293662", "#78dda0")
     } else if (id_button == "estrategias_grupoNucleo") {
-      tx <- "{compromiso} <br/> <b>Hitos con estrategias de comunicación: </b><br/>{hito}<br/> <b>El compromiso cuenta con una estrategia de comunicación cocreada: {estrategias_grupoNucleo} </b>  <br/>"
+      tx <- "{compromiso} <br/> <b>El compromiso cuenta con una estrategia de comunicación cocreada: {estrategias_grupoNucleo} </b>  <br/>"
       colors <- c("#0076b7", "#78dda0")
       yMax <- 4
       #colorDonut <- "value"
@@ -790,18 +799,18 @@ server <- function(input, output, session) {
     format_x_js <- NULL
     axisColor <- data_select() %>% filter(cmp_esperado %in% "si")
     
- 
+    
     if (nrow(axisColor) != 0) {
       axisColor <- unique(axisColor$hito_id)
       hito_high <- paste0("\'",axisColor, "\'", collapse = ",")
       format_x_js <- JS(paste0("function () { var arr = [", hito_high,"]; if (arr.includes(this.value)) {return '<text style=\"color:#109a4f !important;fill:#109a4f !important;font-weight: 500;\">' + this.value + '</text>'; } else { return this.value}; }"))
     }
-
+    
     graph_type <- "grouped"
     if (last_indicator() %in% c("avance", "sectores", "relacion_internacional")) {
       graph_type = "stacked"
     }
-  
+    
     list(
       data = data_select(),
       plot_margin_bottom = opts_plot()$marginBottom,
@@ -967,7 +976,7 @@ server <- function(input, output, session) {
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       tx <- "Sin detalle"
     }
-
+    
     
     tx
     
@@ -1126,7 +1135,7 @@ server <- function(input, output, session) {
   
   
   
- 
+  
   
 }
 
