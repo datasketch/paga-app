@@ -88,7 +88,8 @@ dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
                                                     "relacion_internacional_punto" = "Indicador 8 - especificación",
                                                     "relacion_internacional_justificacion" = "Indicador 8 - justificación",
                                                     "ind_6_consultor" = "Indicador 6 - nuevo",
-                                                    "nuevas_iniciativas" = "Indicador 8 - nuevo")) 
+                                                    "nuevas_iniciativas" = "Indicador 8 - nuevo",
+                                                    "justificacion_entidades"= "Indicador 3 - justificación")) 
 
 
 

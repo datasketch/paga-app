@@ -237,6 +237,10 @@ scroll STYLES
 }
 
 
+.dataTables_scrollHead {
+  overflow: hidden !important; 
+}
+
 "
 
 indicadores_dic <- read_rds("data/all_dic.rds")
@@ -504,6 +508,9 @@ server <- function(input, output, session) {
     var_s <- last_indicator()
     #c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd")
     if (last_indicator() %in% "estado") {
+      df <- df[ !duplicated(df, fromLast=T, by = c("hito", "fecha_registro_entidades")),]
+      df <- df |> arrange(fecha_registro_entidades)
+      df <- df[ !duplicated(df[, c("hito")], fromLast=T),]
       df <- df[,c(var_s, "hito_id", "estado_contraparte", "estado_grupoNucleo", "cmp_esperado", "hito")]
       
       df <- df %>% plyr::rename(c("estado" = "Entidad responsable", "estado_contraparte" = "Contraparte", "estado_grupoNucleo" = "Grupo Núcleo"))
@@ -520,7 +527,7 @@ server <- function(input, output, session) {
       df <- df %>% gather("avance", "porcentaje", c("Porcentaje de cumplimiento", "Porcentaje de no cumplimiento"))
       df <- df %>% select(avance, hito_id, porcentaje, everything()) #%>% filter(porcentaje>0)
       df$...colors <- ifelse(df$avance == "Porcentaje de cumplimiento", "#0076b7", "#293662")
-      print(tail(df))
+      #print(tail(df))
     } else if (last_indicator() %in% "sectores") {
       #print("sectores")
       req(id_viz())
@@ -655,6 +662,7 @@ server <- function(input, output, session) {
     legendShow <- TRUE
     legendRev <- FALSE
     orderAxis <- NULL
+    num_format <- "1,234."
     if (id_button == "avance") {
       tx <- "Fecha de inicio: {fecha_inicio} <br/> Fecha de finalización: {fecha_finalizacion} <br/>{hito}<br/><b>{avance}: {porcentaje}%</b>"
       yMax <- 100
@@ -664,6 +672,7 @@ server <- function(input, output, session) {
       order_s <-  rev(unique(df$avance))
       legendRev <- TRUE
       showLabels <- TRUE
+      num_format <- "1,234.1"
       #colors <- c("#0076b7", "#293662", "#0076b7", "#293662")
       # if (length(order_s) == 1) {
       #   if (order_s == "Porcentaje de cumplimiento") colors <- colors[1]
@@ -851,7 +860,7 @@ server <- function(input, output, session) {
       # drop_na = TRUE,
       grid_y_enabled = opts_plot()$yEnabled,
       tooltip = opts_plot()$tooltip,
-      format_sample_num = "1,234.",
+      format_sample_num = opts_plot()$num_format,
       palette_colors = opts_plot()$colors,
       clickFunction = opts_plot()$clickFc
     )
@@ -955,6 +964,29 @@ server <- function(input, output, session) {
                 )
       )
     }
+    if (last_indicator() %in% c("contraparte_grupoNucleo")) {
+      cat <- input$hcClicked$cat
+      cat <- gsub("Grupo Núcleo", "contraparte_grupoNucleo", cat)
+      cat <- gsub("Entidad responsable", "entidad_responsable_gn", cat)
+      
+      df <- df %>% filter(hito_id %in% input$hcClicked$id)
+      df <- df[,c("hito", cat, "justificacion_entidades")]
+      tx <- df$justificacion_entidades
+      if (is.na(df$justificacion_entidades)) tx <- "Sin información"
+      tx <- div(class = "bodyModal",
+               tx
+      )
+    }
+    if (last_indicator() %in% c("entidad_grupoNucleo")) {
+
+      df <- df %>% filter(hito_id %in% input$hcClicked$id)
+      tx <- df$justificacion_entidades
+      if (is.na(df$justificacion_entidades)) tx <- "Sin información"
+      tx <- div(class = "bodyModal",
+                tx
+      )
+    }
+    
     if (last_indicator() %in% c("contraparte_responsable")) {
       tx <- div(class = "bodyModal",
                 "Sin información de la justificación de cumplimiento de responsabilidades"
@@ -1016,8 +1048,10 @@ server <- function(input, output, session) {
                            options = list(
                              mark = list(accuracy = "exactly"),
                              autoWidth = TRUE,
-                             scrollX = TRUE,   ## enable scrolling on X axis
-                             scrollY = TRUE,
+                             scrollX = T,
+                             fixedColumns = TRUE,
+                             fixedHeader = TRUE,
+                             scrollY = "500px",
                              headerCallback = JS(headerCallback),
                              columnDefs= list(
                                list(
