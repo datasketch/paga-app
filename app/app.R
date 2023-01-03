@@ -978,7 +978,7 @@ server <- function(input, output, session) {
       
       #df <- df[,c("hito", cat, "justificacion_entidades")]
       if (cat == "Entidad responsable") {
-        tx <-  df$justificacion_contraparte
+        tx <-  df$justificacion_entidades
       } else {
         tx <- NULL
       }
@@ -996,7 +996,7 @@ server <- function(input, output, session) {
       print(input$hcClicked$cat)
       cat <- input$hcClicked$cat
       if (cat == "Contraparte") {
-        tx <-  df$justificacion_entidades
+        tx <-  df$justificacion_contraparte
       } else {
         tx <- NULL
       }
