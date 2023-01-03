@@ -548,6 +548,9 @@ server <- function(input, output, session) {
       df <- df |> dplyr::select(sectores, hito_id, value, dplyr::everything())
     } else if (last_indicator() %in% c("contraparte_grupoNucleo", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn")) {
       if (last_indicator() == "contraparte_grupoNucleo") {
+        df <- df[ !duplicated(df, fromLast=T, by = c("hito", "fecha_registro_entidades")),]
+        df <- df |> arrange(fecha_registro_entidades)
+        df <- df[ !duplicated(df[, c("hito")], fromLast=T),]
         df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
         df <- df %>% dplyr::rename(c("Entidad responsable" = "contraparte_grupoNucleo",
                                      "Grupo Núcleo" = "entidad_responsable_gn"))
@@ -975,11 +978,12 @@ server <- function(input, output, session) {
       
       #df <- df[,c("hito", cat, "justificacion_entidades")]
       if (cat == "Entidad responsable") {
-        tx <-  df$justificacion_entidades
+        tx <-  df$justificacion_contraparte
       } else {
         tx <- NULL
       }
-      if (is.na(df$justificacion_entidades)) tx <- "Sin información"
+      if (is.null(tx)) tx <- "Sin información"
+      if (is.na(tx)) tx <- "Sin información"
       tx <-  div(class = "bodyModal",
                  HTML( 
                    paste0("<b>",cat,"</b><br/><br/>
@@ -992,11 +996,13 @@ server <- function(input, output, session) {
       print(input$hcClicked$cat)
       cat <- input$hcClicked$cat
       if (cat == "Contraparte") {
-        tx <-  df$justificacion_contraparte
+        tx <-  df$justificacion_entidades
       } else {
         tx <- NULL
       }
-      if (is.na(df$justificacion_entidades)) tx <- "Sin información"
+      
+      if (is.null(tx)) tx <- "Sin información"
+      if (is.na(tx)) tx <- "Sin información"
       tx <-  div(class = "bodyModal",
                  HTML( 
                    paste0("<b>",cat,"</b><br/><br/>
