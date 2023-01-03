@@ -241,6 +241,10 @@ scroll STYLES
   overflow: hidden !important; 
 }
 
+.modal-wrapper {
+  width: 500px
+}
+
 "
 
 indicadores_dic <- read_rds("data/all_dic.rds")
@@ -605,14 +609,14 @@ server <- function(input, output, session) {
       df <- df[ !duplicated(df[, c("compromiso")], fromLast=T),]
       
       indComp <- data.frame(compromiso = unique(df$compromiso))
-     
+      
       indComp$idCom <- paste0("Compromiso ", 1:nrow(indComp))
       df <- df %>% left_join(indComp, by = "compromiso") 
-     
+      
       
       df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo,
                                            c("Sí" = 4, "No" = 2)))
-  
+      
       df <- df %>% select(idCom, value, "estrategias_grupoNucleo", everything())
     }
     
@@ -966,25 +970,40 @@ server <- function(input, output, session) {
     }
     if (last_indicator() %in% c("contraparte_grupoNucleo")) {
       cat <- input$hcClicked$cat
-      cat <- gsub("Grupo Núcleo", "contraparte_grupoNucleo", cat)
-      cat <- gsub("Entidad responsable", "entidad_responsable_gn", cat)
+      #cat <- gsub("Grupo Núcleo", "contraparte_grupoNucleo", cat)
+      #cat <- gsub("Entidad responsable", "entidad_responsable_gn", cat)
       
-      df <- df %>% filter(hito_id %in% input$hcClicked$id)
-      df <- df[,c("hito", cat, "justificacion_entidades")]
-      tx <- df$justificacion_entidades
+      #df <- df[,c("hito", cat, "justificacion_entidades")]
+      if (cat == "Entidad responsable") {
+        tx <-  df$justificacion_entidades
+      } else {
+        tx <- NULL
+      }
       if (is.na(df$justificacion_entidades)) tx <- "Sin información"
-      tx <- div(class = "bodyModal",
-               tx
-      )
+      tx <-  div(class = "bodyModal",
+                 HTML( 
+                   paste0("<b>",cat,"</b><br/><br/>
+                   <b>Justificación:<b/><br/>",
+                          tx
+                   )
+                 ))
     }
     if (last_indicator() %in% c("entidad_grupoNucleo")) {
-
-      df <- df %>% filter(hito_id %in% input$hcClicked$id)
-      tx <- df$justificacion_entidades
+      print(input$hcClicked$cat)
+      cat <- input$hcClicked$cat
+      if (cat == "Contraparte") {
+        tx <-  df$justificacion_contraparte
+      } else {
+        tx <- NULL
+      }
       if (is.na(df$justificacion_entidades)) tx <- "Sin información"
-      tx <- div(class = "bodyModal",
-                tx
-      )
+      tx <-  div(class = "bodyModal",
+                 HTML( 
+                   paste0("<b>",cat,"</b><br/><br/>
+                   <b>Justificación:<b/><br/>",
+                          tx
+                   )
+                 ))
     }
     
     if (last_indicator() %in% c("contraparte_responsable")) {

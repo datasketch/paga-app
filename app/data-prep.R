@@ -151,7 +151,8 @@ dataContraparte <- dataContraparte %>% dplyr::rename(c( "estado_contraparte" = "
                                                         "compromiso" = "Compromiso",
                                                         "fecha_registro_contraparte" = "Fecha de registro",
                                                         "contraparte_persona_formulario" = "Funcionario",
-                                                        "contraparte" = "Organización")) 
+                                                        "contraparte" = "Organización",
+                                                        "justificacion_contraparte" = "Indicador 3 - justificación")) 
 
 #dataContraparte <- dataContraparte %>% dplyr::inner_join(dicHitos) 
 
