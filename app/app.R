@@ -386,7 +386,7 @@ server <- function(input, output, session) {
       l[[button_id]] <- div(l[[button_id]],
                             radioButtons("sub_cumplimiento",
                                          " ", 
-                                         setNames(c("contraparte_responsable", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn"), 
+                                         setNames(c("contraparte_responsable", "entidad_responsable", "contraparte_responsable_gn", "entidad_responsable_gn"), 
                                                   c("3.1 ¿La contraparte ha respondido con sus responsabilidades con la entidad Responsable durante el compromiso?",
                                                     "3.2 ¿La entidad responsable ha respondido con sus responsabilidades con la contraparte?",
                                                     "3.3 ¿La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo durante el compromiso?",
@@ -550,7 +550,7 @@ server <- function(input, output, session) {
       df <- df |> tidyr::drop_na(sectores) 
       df$value <- 1
       df <- df |> dplyr::select(sectores, hito_id, value, dplyr::everything())
-    } else if (last_indicator() %in% c("contraparte_responsable", "entidad_grupoNucleo", "contraparte_responsable_gn", "entidad_responsable_gn")) {
+    } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_responsable_gn", "entidad_responsable_gn")) {
       if (last_indicator() == "contraparte_responsable") {
         df <- df[ !duplicated(df, fromLast=T, by = c("hito", "fecha_registro_entidades")),]
         df <- df |> arrange(fecha_registro_entidades)
@@ -561,10 +561,10 @@ server <- function(input, output, session) {
         df <- df %>% gather("tipo", "value", c("Entidad responsable", "Grupo Núcleo"))
         df$contraparte_responsable <- df$value
       }
-      if (last_indicator() == "entidad_grupoNucleo") {
-        df <- df[,c(var_s,"contraparte_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
-        df <- df %>% dplyr::rename(c("Contraparte" = "entidad_grupoNucleo",
-                                     "Grupo Núcleo" = "contraparte_responsable_gn"))
+      if (last_indicator() == "entidad_responsable") {
+        df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
+        df <- df %>% dplyr::rename(c("Contraparte" = "entidad_responsable",
+                                     "Grupo Núcleo" = "entidad_responsable_gn"))
         df <- df %>% gather("tipo", "value", c("Contraparte", "Grupo Núcleo"))
         df$entidad_responsable <- df$value
       }
@@ -704,7 +704,7 @@ server <- function(input, output, session) {
       yMax <- 4
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       fjs <- JS("function () {var arreglo = ['','No', '' , 'Sí'];return arreglo[this.value];}")
-    } else if (id_button == "entidad_grupoNucleo") {
+    } else if (id_button == "entidad_responsable") {
       tx <- "{hito}<br/> <b>La entidad responsable ha responido con sus responsabilidades con la contraparte: {entidad_responsable} </b>  <br/><br/>Da click para más información"
       order_s <- c("Contraparte", "Grupo Núcleo")
       #colors <- c("#ff4e17", "#78dda0")
@@ -996,7 +996,7 @@ server <- function(input, output, session) {
                    )
                  ))
     }
-    if (last_indicator() %in% c("entidad_grupoNucleo")) {
+    if (last_indicator() %in% c("entidad_responsable")) {
       print(input$hcClicked$cat)
       cat <- input$hcClicked$cat
       if (cat == "Contraparte") {
