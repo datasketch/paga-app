@@ -279,7 +279,7 @@ ui <- panelsPage(
         body = div(
           uiOutput("basicos")
         ),
-        footer = tags$i("Fecha de actualización: Octubre 22 del 2021")
+        footer = uiOutput("fecha_ultima")
   ),
   panel(title = "Visualización",
         id = "naranja",
@@ -327,8 +327,21 @@ server <- function(input, output, session) {
                        }
   )
   
+  fecha <- reactive({
+    req(data())
+    paste0("Fecha de actualización: ", 
+                  max(c(data()$fecha_registro_entidades,
+                        data()$UpdatedAtContraparte,
+                        data()$fecha_registro_grupoNucleo), na.rm = TRUE))
+  })
   
-  
+  output$fecha_ultima <- renderUI({
+    # req(fecha())
+    # print("Holaaa")
+    # print(max(c(data()$fecha_registro_entidades,
+    #             data()$UpdatedAtContraparte), na.rm = TRUE))
+    tags$i(fecha())
+  })
   # Lista predeterminada de indicadores -------------------------------------
   ### Creacion del menu de indicadores
   indicators_list <- reactive({
@@ -812,6 +825,7 @@ server <- function(input, output, session) {
     req(data_select())
     req(last_indicator())
     req(opts_plot())
+    req(fecha())
     if (nrow(data_select()) == 0) return()
     if (actual_but$active == "table") return()
     
@@ -842,7 +856,7 @@ server <- function(input, output, session) {
       orientation = "hor",
       drop_na = TRUE,
       agg = "mean",
-      caption = "Fecha de actualización: Octubre 22 del 2021",
+      caption = fecha(),
       legend_y_position = -30,
       hor_title = " ",
       ver_title = " ",
