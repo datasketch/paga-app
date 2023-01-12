@@ -539,7 +539,6 @@ server <- function(input, output, session) {
       df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 4, "Ejecución" = 3, "Planificación" = 2, "Definición" = 1, "Detenido" = 0))
       df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito) %>% tidyr::drop_na(estado)
     } else if (last_indicator() %in% "avance") {
-      
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
       df$avance[is.na(df$avance)] <- 0
       df$avance <- df$avance
@@ -561,7 +560,7 @@ server <- function(input, output, session) {
       }
       df$sectores <- trimws(df$sectores) 
       df <- df |> tidyr::drop_na(sectores) 
-      df$value <- 1
+      df$value <- 0.8
       df <- df |> dplyr::select(sectores, hito_id, value, dplyr::everything())
     } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_responsable_gn", "entidad_responsable_gn")) {
       if (last_indicator() == "contraparte_responsable") {
