@@ -91,6 +91,7 @@ dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
                                                     "nuevas_iniciativas" = "Indicador 8 - nuevo",
                                                     "justificacion_entidades"= "Indicador 3 - justificación")) 
 
+dataEntidades  <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
 
 #dataEntidades <- dataEntidades %>% dplyr::inner_join(dicHitos) #%>% dplyr::select(-idF)
@@ -110,8 +111,8 @@ dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de
 
 
 ### base de datos que une la base de compromisos con entidades
-data_all <- compromisos %>% left_join(dataEntidades)
-data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito")], fromLast=T),]
+data_all <- compromisos %>% inner_join(dataEntidades)
+data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito", "entidad", "contraparte")], fromLast=T),]
 
 # los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
 data_all$avance[is.na(data_all$avance)] <- 0 
