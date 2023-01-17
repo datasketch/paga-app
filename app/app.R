@@ -245,10 +245,6 @@ scroll STYLES
   width: 500px
 }
 
-#naranja {
-overflow: hidden;
-}
-
 "
 
 indicadores_dic <- read_rds("data/all_dic.rds")
