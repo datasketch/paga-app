@@ -130,6 +130,8 @@ function() {
   
   avance_por_compromiso <-
     data %>% group_by(compromiso) %>% summarise(avance = mean(as.numeric(avance), na.rm = T))
+  avance_por_compromiso <-
+    dplyr::tibble(compromiso = unique(data$compromiso)) |> left_join(avance_por_compromiso)
   avance_por_compromiso$order <-
     paste0("Compromiso ", 1:nrow(avance_por_compromiso))
   avance_por_compromiso <-

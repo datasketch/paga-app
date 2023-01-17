@@ -530,7 +530,7 @@ server <- function(input, output, session) {
     #c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd")
     if (last_indicator() %in% "estado") {
       df <- df[ !duplicated(df, fromLast=T, by = c("hito", "fecha_registro_entidades")),]
-      df <- df |> arrange(fecha_registro_entidades)
+      df <- df  %>% arrange(fecha_registro_entidades)
       df <- df[ !duplicated(df[, c("hito")], fromLast=T),]
       df <- df[,c(var_s, "hito_id", "estado_contraparte", "estado_grupoNucleo", "cmp_esperado", "hito")]
       
@@ -559,13 +559,13 @@ server <- function(input, output, session) {
         df <- df %>% filter(hito %in% input$hitoSel)
       }
       df$sectores <- trimws(df$sectores) 
-      df <- df |> tidyr::drop_na(sectores) 
+      df <- df  %>% tidyr::drop_na(sectores) 
       df$value <- 0.8
-      df <- df |> dplyr::select(sectores, hito_id, value, dplyr::everything())
+      df <- df  %>% dplyr::select(sectores, hito_id, value, dplyr::everything())
     } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_responsable_gn", "entidad_responsable_gn")) {
       if (last_indicator() == "contraparte_responsable") {
         df <- df[ !duplicated(df, fromLast=T, by = c("hito", "fecha_registro_entidades")),]
-        df <- df |> arrange(fecha_registro_entidades)
+        df <- df  %>% arrange(fecha_registro_entidades)
         df <- df[ !duplicated(df[, c("hito")], fromLast=T),]
         df <- df[,c(var_s,"entidad_responsable_gn" ,"hito_id", "cmp_esperado", "hito")]
         df <- df %>% dplyr::rename(c("Entidad responsable" = "contraparte_responsable",
@@ -608,9 +608,9 @@ server <- function(input, output, session) {
       df <- df[,c("relacion_internacional_descripcion", "hito_id", var_s, "cmp_esperado", "hito", "relacion_internacional_justificacion")]
       df <- df %>% separate_rows(relacion_internacional_descripcion, sep = ",|\\-|\\|")
       df$relacion_internacional_descripcion <- trimws(df$relacion_internacional_descripcion)
-      df <- df |> tidyr::drop_na(relacion_internacional_descripcion) 
+      df <- df  %>% tidyr::drop_na(relacion_internacional_descripcion) 
       df$value <- 1
-      df <- df |> dplyr::select(relacion_internacional_descripcion, hito_id, value, dplyr::everything())
+      df <- df  %>% dplyr::select(relacion_internacional_descripcion, hito_id, value, dplyr::everything())
       
       if (id_viz() == "donut") {
         req(input$hitoSel)
@@ -623,16 +623,13 @@ server <- function(input, output, session) {
     
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       df <- data() %>% drop_na(estrategias_grupoNucleo)
+      d_c <- dplyr::tibble(compromiso = unique(df$compromiso))
+      print(d_c)
       df <- df[ !duplicated(df, fromLast=T, by = c("compromiso", "estrategias_grupoNucleo", "fecha_registro_grupoNucleo")),]
-      df <- df |> arrange(fecha_registro_grupoNucleo)
+      df <- df  %>% arrange(fecha_registro_grupoNucleo)
       df <- df[ !duplicated(df[, c("compromiso")], fromLast=T),]
-      
-      indComp <- data.frame(compromiso = unique(df$compromiso))
-      
-      indComp$idCom <- paste0("Compromiso ", 1:nrow(indComp))
-      df <- df %>% left_join(indComp, by = "compromiso") 
-      
-      
+      df <- d_c |> dplyr::left_join(df)
+      df$idCom <- paste0("Compromiso ", 1:nrow(df))
       df$value <- as.numeric(plyr::revalue(df$estrategias_grupoNucleo,
                                            c("Sí" = 4, "No" = 2)))
       
@@ -990,6 +987,7 @@ server <- function(input, output, session) {
     }
     if (last_indicator() %in% c("contraparte_responsable")) {
       cat <- input$hcClicked$cat
+      print(cat)
       #cat <- gsub("Grupo Núcleo", "contraparte_grupoNucleo", cat)
       #cat <- gsub("Entidad responsable", "entidad_responsable_gn", cat)
       
@@ -1000,7 +998,7 @@ server <- function(input, output, session) {
         tx <- NULL
       }
       if (is.null(tx)) tx <- "Sin información"
-      if (is.na(tx)) tx <- "Sin información"
+      #if (is.na(tx)) tx <- "Sin información"
       tx <-  div(class = "bodyModal",
                  HTML( 
                    paste0("<b>",cat,"</b><br/><br/>
@@ -1019,7 +1017,7 @@ server <- function(input, output, session) {
       }
       
       if (is.null(tx)) tx <- "Sin información"
-      if (is.na(tx)) tx <- "Sin información"
+      #if (is.na(tx)) tx <- "Sin información"
       tx <-  div(class = "bodyModal",
                  HTML( 
                    paste0("<b>",cat,"</b><br/><br/>
@@ -1029,23 +1027,23 @@ server <- function(input, output, session) {
                  ))
     }
     
-    if (last_indicator() %in% c("contraparte_responsable")) {
-      tx <- div(class = "bodyModal",
-                "Sin información de la justificación de cumplimiento de responsabilidades"
-      )
-    }
-    
-    if (last_indicator() %in% c("entidad_responsable")) {
-      tx <- div(class = "bodyModal",
-                HTML(
-                  paste0("<p class = 'title-modal'>",
-                         indicadores_dic$label_original[indicadores_dic$id == "entidad_responsable_justificacion"],
-                         "</p><br/> <h3>Entidad Responsable</h3><br/> <p class = 'description-modal'>",
-                         df$entidad_responsable_justificacion, "</p>"
-                  )
-                )
-      )
-    }
+    # if (last_indicator() %in% c("contraparte_responsable")) {
+    #   tx <- div(class = "bodyModal",
+    #             "Sin información de la justificación de cumplimiento de responsabilidades"
+    #   )
+    # }
+    # 
+    # if (last_indicator() %in% c("entidad_responsable")) {
+    #   tx <- div(class = "bodyModal",
+    #             HTML(
+    #               paste0("<p class = 'title-modal'>",
+    #                      indicadores_dic$label_original[indicadores_dic$id == "entidad_responsable_justificacion"],
+    #                      "</p><br/> <h3>Entidad Responsable</h3><br/> <p class = 'description-modal'>",
+    #                      df$entidad_responsable_justificacion, "</p>"
+    #               )
+    #             )
+    #   )
+    # }
     
     if (last_indicator() %in% "estrategias_grupoNucleo") {
       tx <- "Sin detalle"

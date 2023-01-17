@@ -91,6 +91,7 @@ dataEntidades <- dataEntidades %>% dplyr::rename(c( "compromiso" = "Compromiso",
                                                     "nuevas_iniciativas" = "Indicador 8 - nuevo",
                                                     "justificacion_entidades"= "Indicador 3 - justificación")) 
 
+dataEntidades <- dataEntidades |> dplyr::filter(fecha_registro_entidades  <= Sys.time())
 dataEntidades  <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
 
@@ -118,8 +119,8 @@ data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito", "entidad",
 data_all$avance[is.na(data_all$avance)] <- 0 
 data_all$avance <- as.numeric(data_all$avance)
 
-####### GRAFICO 1
-
+# ####### GRAFICO 1
+# 
 # avance <- mean(as.numeric(data_all$avance), na.rm = T)
 # dfViz <- data.frame(
 #   etiquetas = c("Porcentaje total de cumplimiento del plan", "Porcentaje que falta para el cumplimiento total del plan"),
