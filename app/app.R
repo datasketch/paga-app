@@ -724,13 +724,13 @@ server <- function(input, output, session) {
     }  else if (id_button == "contraparte_responsable_gn") {
       tx <- "{hito}<br/> <b>La contraparte ha respondido con sus responsabilidades con el Grupo Núcleo: {contraparte_responsable} </b>  <br/>"
       #colors <- c( "#78dda0")
-      cursor <- "pointer"
+      #cursor <- "pointer"
       yMax <- 4
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "entidad_responsable_gn") {
       tx <- "{hito}<br/> <b>La entidad ha respondido con sus responsabilidades con el Grupo Núcleo: {entidad_responsable} </b>  <br/>"
       #colors <- c("#78dda0")
-      cursor <- "pointer"
+      #cursor <- "pointer"
       yMax <- 4
       fjs <- JS("function () {var arreglo = ['','No', '', 'Sí'];return arreglo[this.value];}")
     } else if (id_button == "actividades") {
