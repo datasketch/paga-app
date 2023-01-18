@@ -85,6 +85,10 @@ getData <- function() {
   
   
   
+  dataEntidades <- dataEntidades |> dplyr::filter(fecha_registro_entidades  <= Sys.time())
+  dataEntidades$hito[dataEntidades$hito == "Hito 2: Capacitación sobre estándares de Open Contracting\nData Estándar (OCDS) y Open Contracting for Infraestructure\nData Estándar (OC4IDS) dirigida a los responsables de\ncompras públicas y actores clave, previamente identificados"] <- "Hito 2: Capacitación sobre estándares de Open Contracting\nData Estándar (OCDS) y Open Contracting for Infraestructure\nData Estándar (OC4IDS) dirigida a los responsables de\ncompras públicas y actores clave, previamente identificados."
+  
+  
   #dataEntidades <- dataEntidades %>% dplyr::inner_join(dicHitos) #%>% dplyr::select(-idF)
   l <- purrr::map(1:ncol(dataEntidades), function(i) {
     dataEntidades[[i]] <<-  trimws(gsub("\n", " ",dataEntidades[[i]]))
@@ -98,14 +102,17 @@ getData <- function() {
   dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha_registro_entidades)
   dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
   dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
- 
+  #dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
+  dataEntidades  <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
+  
   ### base de datos que une la base de compromisos con entidades
-  data_all <- compromisos %>% left_join(dataEntidades)
-  data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito", "entidad", "contraparte")], fromLast=T),]
+  data_all <- dataEntidades |> inner_join(compromisos)#compromisos %>% inner_join(dataEntidades)
+  data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito")], fromLast=T),]
   
   # los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
   data_all$avance[is.na(data_all$avance)] <- 0 
   data_all$avance <- as.numeric(data_all$avance)
+  
   data_all
 }
 
