@@ -108,7 +108,8 @@ getData <- function() {
   ### base de datos que une la base de compromisos con entidades
   data_all <- dataEntidades |> inner_join(compromisos)#compromisos %>% inner_join(dataEntidades)
   data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito")], fromLast=T),]
-  
+  compromiso <- compromisos |> select(compromiso, hito) |> distinct()
+  data_all <- compromiso |> left_join(data_all)
   # los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
   data_all$avance[is.na(data_all$avance)] <- 0 
   data_all$avance <- as.numeric(data_all$avance)
