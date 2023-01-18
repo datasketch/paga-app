@@ -210,6 +210,7 @@ dataGrupoNucleo <- dataGrupoNucleo %>% dplyr::rename(c( "estado_grupoNucleo" = "
                                                         "fecha_registro_grupoNucleo" = "Fecha de registro")) 
 
 
+dataGrupoNucleo <- dataGrupoNucleo |> dplyr::filter(fecha_registro_grupoNucleo  <= Sys.time())
 
 l <- purrr:::map(1:ncol(dataGrupoNucleo), function(i) {
   dataGrupoNucleo[[i]] <<- trimws(gsub("\n", " ", trimws(dataGrupoNucleo[[i]])))
