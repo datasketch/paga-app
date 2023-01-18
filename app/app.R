@@ -536,6 +536,8 @@ server <- function(input, output, session) {
       df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito) %>% tidyr::drop_na(estado)
     } else if (last_indicator() %in% "avance") {
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
+      print("AVANCE")
+      print(df)
       df$avance[is.na(df$avance)] <- 0
       df$avance <- df$avance
       df$`Porcentaje de no cumplimiento` <- 100 - df$avance
