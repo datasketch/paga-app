@@ -758,12 +758,13 @@ server <- function(input, output, session) {
       }
     } else if (id_button == "resultados") {
       tx <- "{hito} <br/> <b>Percepción de resultados: {resultados}</b>  <br/><br/>Da click para más información"
-      fjs <- JS("function () {var arreglo = ['','Se mantuvo igual', '','Mejoró un poco','' ,'Mejoró <br/> sustancial-<br/>mente'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['','Se mantuvo <br/> igual', '','Mejoró <br/>un poco','' ,'Mejoró <br/> sustancial-<br/>mente'];return arreglo[this.value];}")
       order_s <- c("Contraparte", "Grupo Núcleo")
       #colors <- c("#0076b7", "#78dda0")
       cursor <- "pointer"
       myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.category, cat:this.name, timestamp: new Date().getTime()});}")
       yMax <- 5.5
+      #labelsRotationY <- 0
     } else if (id_button == "relacion_internacional") {
       #tx <- "{hito} <br/> <b>Cumplimiento con iniciativas internacionales: {relacion_internacional_descripcion}</b> <br/> <br/> <b>Punto concreto de la relación con el hito</b> {relacion_internacional_justificacion}"
       tx <- "{hito} <br/> <b> Iniciativa internacional ligada con Gobierno Abierto: </b>{relacion_internacional_descripcion} <br/>
