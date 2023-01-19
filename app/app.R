@@ -326,9 +326,9 @@ server <- function(input, output, session) {
   fecha <- reactive({
     req(data())
     paste0("Fecha de actualización: ", 
-                  max(c(data()$fecha_registro_entidades,
-                        data()$UpdatedAtContraparte,
-                        data()$fecha_registro_grupoNucleo), na.rm = TRUE))
+           max(c(data()$fecha_registro_entidades,
+                 data()$UpdatedAtContraparte,
+                 data()$fecha_registro_grupoNucleo), na.rm = TRUE))
   })
   
   output$fecha_ultima <- renderUI({
@@ -758,7 +758,7 @@ server <- function(input, output, session) {
       }
     } else if (id_button == "resultados") {
       tx <- "{hito} <br/> <b>Percepción de resultados: {resultados}</b>  <br/><br/>Da click para más información"
-      fjs <- JS("function () {var arreglo = ['','Se mantuvo igual', '','Mejoró un poco','' ,'Mejoró <br/> sustancialmente'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['','Se mantuvo igual', '','Mejoró un poco','' ,'Mejoró <br/> sustancial-<br/>mente'];return arreglo[this.value];}")
       order_s <- c("Contraparte", "Grupo Núcleo")
       #colors <- c("#0076b7", "#78dda0")
       cursor <- "pointer"
@@ -995,15 +995,17 @@ server <- function(input, output, session) {
       } else {
         tx <- NULL
       }
-      if (is.null(tx)) tx <- "Sin información"
-      #if (is.na(tx)) tx <- "Sin información"
-      tx <-  div(class = "bodyModal",
-                 HTML( 
-                   paste0("<b>",cat,"</b><br/><br/>
+      if (is.null(tx)) {
+        tx <- "Grupo Núcleo no registra esta información"
+      } else {
+        tx <-  div(class = "bodyModal",
+                   HTML( 
+                     paste0("<b>",cat,"</b><br/><br/>
                    <b>Justificación:<b/><br/>",
-                          tx
-                   )
-                 ))
+                            tx
+                     )
+                   ))
+      }
     }
     if (last_indicator() %in% c("entidad_responsable")) {
       print(input$hcClicked$cat)
@@ -1014,15 +1016,17 @@ server <- function(input, output, session) {
         tx <- NULL
       }
       
-      if (is.null(tx)) tx <- "Sin información"
-      #if (is.na(tx)) tx <- "Sin información"
-      tx <-  div(class = "bodyModal",
-                 HTML( 
-                   paste0("<b>",cat,"</b><br/><br/>
+      if (is.null(tx)) {
+        tx <- "Grupo Núcleo no registra esta información"
+      } else {
+        tx <-  div(class = "bodyModal",
+                   HTML( 
+                     paste0("<b>",cat,"</b><br/><br/>
                    <b>Justificación:<b/><br/>",
-                          tx
-                   )
-                 ))
+                            tx
+                     )
+                   ))
+      }
     }
     
     # if (last_indicator() %in% c("contraparte_responsable")) {
