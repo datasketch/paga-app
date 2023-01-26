@@ -2,7 +2,7 @@ id,tx
 avance,"<b>Indicador 1.</b><br/><br/><br/>
                   Esta gráfica refleja el porcentaje de cumplimiento de los hitos de cada uno de los compromisos.  Para ver cada compromiso dar clic en la barra del nombre del compromiso y seleccionar. <br/><br/>
                   En azul claro se encuentra el porcentajes de cumplimiento, y en azul oscuro el porcentaje por ejecutar.<br/><br/>
-                  Los hitos finalizados de acuerdo a las fechas del Plan de Acción de Gobierno de Ecuador tienen letras en color rojo, y los hitos en proceso se  encuentran en color gris.<br/><br/>
+                  Los hitos finalizados de acuerdo a las fechas del Plan de Acción de Gobierno de Ecuador tienen letras en color verde, y los hitos en proceso se encuentran en color gris.<br/><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
                  "
 estado,"<b>Indicador 2.</b><br/><br/><br/>
@@ -22,18 +22,18 @@ cumplimiento,"<b>Indicador 3.</b><br/><br/><br/>
                   <li>Cumplimiento de las responsabilidades de la entidad responsable ante el Grupo Núcleo.</li>
                   </ul>
                   <br/>
-                  En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que están en desarrollo.
+                  En color verde se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que están en desarrollo.
                   <ul>
                   <li>Color azul = entidades responsables</li>
-                  <li>Color rojo = contrapartes</li>
+                  <li>Color naranja = contrapartes</li>
                   <li>Color verde = Grupo Núcleo</li>
                   </ul>
                   "
 actividades,"<b>Indicador 4.</b><br/><br/><br/>
                   Esta gráfica muestra el número de actividades en las cuales se han involucrado otros actores relevantes en el proceso para el cumplimiento de los compromisos.<br/><br/>
-                  En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo.<br/><br/>
+                  En color verde se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo.<br/><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula<br/><br/>
-                  ¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso?
+                  Al hacer clic en la gráfica aparece la respuesta a la pregunta ¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso?
                   "
 participantes,"<b>Indicador 5. </b><br/><br/><br/>
                   Esta gráfica muestra el número de participantes que se han involucrado en cada uno de los hitos por cada compromiso. En color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo. <br/><br/>
@@ -42,18 +42,10 @@ participantes,"<b>Indicador 5. </b><br/><br/><br/>
 sectores,"<b>Indicador 6. </b><br/><br/><br/>
                   Esta gráfica muestra los sectores a los que pertenecen los participantes de cada hito del compromiso.  <br/>
                   <br/>
-                  <ul>
-                  <li>Color azul = academia</li>
-                  <li>Color naranja = entidades públicas</li>
-                  <li>Color amarillo claro = sociedad civil</li>
-                  <li>Color rojo = sector privada</li>
-                  <li>Color verde = ciudadanía en general </li>
-                  <li>Color amarillo oscuro = organismos multilaterales</li>
-                  </ul><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
                   "
 resultados,"<b>Indicador 7.</b><br/><br/><br/>
-                  Esta gráfica muestra la percepción de cada actor frente a los resultados de la implementación de cada hito. En primer lugar, en color rojo se encuentran los hitos finalizados, mientras en color negro se encuentran los hitos que aún están en desarrollo. En segundo lugar, las percepciones en color azul corresponden a las entidades contraparte, mientras en color verde se encuentran las del Grupo Núcleo. <br/><br/>
+                  Esta gráfica muestra la percepción de cada actor frente a los resultados de la implementación de cada hito. En primer lugar, en color verde se encuentran los hitos finalizados, mientras en color gris se encuentran los hitos que aún están en desarrollo. En segundo lugar, las percepciones en color naranja corresponden a las entidades contraparte, mientras en color verde se encuentran las del Grupo Núcleo.<br/><br/>
                   Adicionalmente, se han elegido tres calificaciones para determinar las percepciones de los actores frente a los resultados; estas son, “se mantuvo igual”, “mejoró un poco” y “mejoró sustancialmente”.<br/><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
                   "
