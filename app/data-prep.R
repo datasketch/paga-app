@@ -113,8 +113,8 @@ dataEntidades  <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hi
 
 
 ### base de datos que une la base de compromisos con entidades
-data_all <- dataEntidades |> inner_join(compromisos)#compromisos %>% inner_join(dataEntidades)
-data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito")], fromLast=T),]
+data_all <- compromisos %>% left_join(dataEntidades)
+#data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito")], fromLast=T),]
 
 # los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
 data_all$avance[is.na(data_all$avance)] <- 0 
@@ -233,7 +233,7 @@ dataGrupoNucleo$contraparte_grupoNucleo[dataGrupoNucleo$contraparte_grupoNucleo 
 
 
 data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
-#data_fin <- data_fin[ !duplicated(data_fin[, c("compromiso", "hito", "contraparte", "entidad")], fromLast=T),]
+data_fin <- data_fin[ !duplicated(data_fin[, c("compromiso", "hito", "contraparte", "entidad")], fromLast=T),]
 
 
 data_fin$avance <- as.numeric(data_fin$avance)

@@ -557,7 +557,7 @@ server <- function(input, output, session) {
         df <- df %>% filter(hito %in% input$hitoSel)
       }
       df$sectores <- trimws(df$sectores) 
-      df <- df  %>% tidyr::drop_na(sectores) 
+      #df <- df  %>% tidyr::drop_na(sectores) 
       df$value <- 0.8
       df <- df  %>% dplyr::select(sectores, hito_id, value, dplyr::everything())
     } else if (last_indicator() %in% c("contraparte_responsable", "entidad_responsable", "contraparte_responsable_gn", "entidad_responsable_gn")) {
@@ -653,6 +653,7 @@ server <- function(input, output, session) {
     if ("tipo" %in% names(df)) {
       df$...colors <- dplyr::recode(df$tipo, "Entidad responsable" = "#0076b7", "Contraparte" = "#ff4e17", "Grupo Núcleo" = "#78dda0")
     }
+
     df
   })
   
@@ -850,6 +851,7 @@ server <- function(input, output, session) {
       legend_show = opts_plot()$legendShow,
       orientation = "hor",
       drop_na = TRUE,
+      drop_na_legend = TRUE,
       agg = "mean",
       caption = fecha(),
       legend_y_position = -30,
