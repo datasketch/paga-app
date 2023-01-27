@@ -668,7 +668,7 @@ server <- function(input, output, session) {
     yMax <- NULL
     yEnabled <- TRUE
     id_button <- last_indicator()
-    colors <- c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd", "#dddddd")
+    colors <- c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd", "#5076b7", "#00c6b7", "#ffafa0")
     cursor <- NULL
     myFunc <- NULL
     df <- data_select()
