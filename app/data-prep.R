@@ -109,7 +109,9 @@ dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha
 dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
 dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
 #dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
-dataEntidades  <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
+
+data_temp <- compromisos |> inner_join(dataEntidades)
+dataEntidades  <- data_temp[ !duplicated(data_temp[, c("compromiso", "hito")], fromLast=T),]
 
 
 ### base de datos que une la base de compromisos con entidades
@@ -173,7 +175,7 @@ dataContraparte$hito[dataContraparte$hito == "Hito 1: Validación de la polític
 
 
 # J O I N 
-data_all2 <- dataContraparte %>% dplyr::inner_join(compromisos)#data_all %>% dplyr::left_join(dataContraparte)
+data_all2 <- compromisos |> inner_join(dataContraparte)#data_all %>% dplyr::left_join(dataContraparte)
 data_all2 <- data_all2[ !duplicated(data_all2[, c("compromiso", "hito")], fromLast=T),]
 data_all2 <- data_all2[,names(dataContraparte)]
 data_all2 <- data_all2 |> dplyr::select(-contraparte)
@@ -223,13 +225,18 @@ dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 2: Articulación de organizac
 dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 4: Identificación y selección de indicadores para la medición de la implementación de la política de datos abiertos con la participación de actores mapeados"] <- "Hito 4: Identificación y selección de indicadores para la medición de la implementación de la política de datos abiertos con la participación de actores mapeados."
 dataGrupoNucleo$hito[dataGrupoNucleo$hito == "Hito 9: Definición de indicadores que permitan la evaluación y mejoramiento de la calidad de los datos y la usabilidad, así como la medición del uso y monitoreo de los procedimientos de régimen común"] <- "Hito 9: Definición de indicadores que permitan la evaluación y mejoramiento de la calidad de los datos y la usabilidad, así como la medición del uso y monitoreo de los procedimientos de régimen común y el nivel de participación de los proveedores en los procedimientos de contratación pública, mismos que permitirán el mejoramiento continuo de los procesos del Sistema Nacional de Contratación Pública."
 
-dataGrupoNucleo <- dataGrupoNucleo[ !duplicated(dataGrupoNucleo[, c("compromiso", "hito")], fromLast=T),]
 
 dataGrupoNucleo$estrategias_grupoNucleo <- stringr::str_to_title(dataGrupoNucleo$estrategias_grupoNucleo)
 dataGrupoNucleo$estrategias_grupoNucleo[dataGrupoNucleo$estrategias_grupoNucleo == ""] <- NA
 dataGrupoNucleo$estrategias_grupoNucleo[dataGrupoNucleo$estrategias_grupoNucleo == "Si"] <- "Sí"
 dataGrupoNucleo$contraparte_grupoNucleo <- stringr::str_to_title(dataGrupoNucleo$contraparte_grupoNucleo)
 dataGrupoNucleo$contraparte_grupoNucleo[dataGrupoNucleo$contraparte_grupoNucleo == "Si"] <- "Sí"
+
+
+data_temp <- compromisos |> inner_join(dataGrupoNucleo)
+data_temp <- data_temp[,names(dataGrupoNucleo)]
+
+dataGrupoNucleo <- data_temp[ !duplicated(data_temp[, c("compromiso", "hito")], fromLast=T),]
 
 
 data_fin <- data_all %>% dplyr::full_join(dataGrupoNucleo)
