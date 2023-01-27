@@ -111,16 +111,17 @@ dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de
 #dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
 
 data_temp <- compromisos |> inner_join(dataEntidades)
+data_temp <- data_temp[,names(dataEntidades)]
 dataEntidades  <- data_temp[ !duplicated(data_temp[, c("compromiso", "hito")], fromLast=T),]
 
 
 ### base de datos que une la base de compromisos con entidades
 data_all <- compromisos %>% left_join(dataEntidades)
-#data_all  <- data_all[ !duplicated(data_all[, c("compromiso", "hito")], fromLast=T),]
 
 # los compromisos que no contienen informacion de avance (estan en na) se dejan con un avance el 0%
 data_all$avance[is.na(data_all$avance)] <- 0 
 data_all$avance <- as.numeric(data_all$avance)
+
 
 # ####### GRAFICO 1
 # 
@@ -254,6 +255,8 @@ data_fin$sectores <- gsub("Sociedad civil", "Sociedad Civil", data_fin$sectores)
 
 order_comp <- dplyr::tibble(compromiso = unique(compromisos$compromiso))
 data_fin <- order_comp |> left_join(data_fin)
+data_fin  <- data_fin[ !duplicated(data_fin[, c("compromiso", "hito")], fromLast=T),]
+
 data_fin
 # save(data_fin, file = "data/all_data.RData")
 
