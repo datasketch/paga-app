@@ -532,7 +532,8 @@ server <- function(input, output, session) {
       
       df <- df %>% plyr::rename(c("estado" = "Entidad responsable", "estado_contraparte" = "Contraparte", "estado_grupoNucleo" = "Grupo Núcleo"))
       df <- df %>% gather("tipo", "estado", c("Entidad responsable", "Contraparte", "Grupo Núcleo"))
-      df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 4, "Ejecución" = 3, "Planificación" = 2, "Definición" = 1, "Detenido" = 0))
+      df$estado[is.na(df$estado)] <- "Sin información"
+      df$estadoxx <- plyr::revalue(df$estado, c("Completado" = 5, "Ejecución" = 4, "Planificación" = 3, "Definición" = 2, "Detenido" = 1, "Sin información" = 0))
       df <- df %>% select(tipo, hito_id, estadoxx, estado, cmp_esperado, hito) %>% tidyr::drop_na(estado)
     } else if (last_indicator() %in% "avance") {
       df <- df[,c(var_s, "hito_id", "fecha_inicio", "fecha_finalizacion", "cmp_esperado", "hito")]
@@ -667,7 +668,7 @@ server <- function(input, output, session) {
     yMax <- NULL
     yEnabled <- TRUE
     id_button <- last_indicator()
-    colors <- c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd")
+    colors <- c("#ff4e17", "#0076b7", "#78dda0", "#ff7f00", "#fdd60e", "#a478dd", "#dddddd")
     cursor <- NULL
     myFunc <- NULL
     df <- data_select()
@@ -699,9 +700,9 @@ server <- function(input, output, session) {
       # }
     } else if (id_button == "estado") {
       tx <- "<b>{tipo}</b> <br/>{hito}<br/> <b>Estado: {estado}</b>"
-      fjs <- JS("function () {var arreglo = ['Detenido','Definición','Planificación', 'Ejecución', 'Completado'];return arreglo[this.value];}")
+      fjs <- JS("function () {var arreglo = ['Sin<br/>informa-<br/>ción','Detenido','Definición','Planificación', 'Ejecución', 'Completado'];return arreglo[this.value];}")
       order_s <- c("Entidad responsable", "Contraparte","Grupo Núcleo")
-      yMax <- 4
+      yMax <- 5
       #labelsRotationY <- 45
       #colors <- c("#0076b7","#ff4e17", "#78dda0") #c("", "", "", "")
     } else if (id_button == "contraparte_responsable") {
@@ -965,10 +966,10 @@ server <- function(input, output, session) {
     if (last_indicator() == "actividades") {
       tx <- div(class = "bodyModal",
                 HTML(
-                  paste0("<p class = 'title-modal'>",
+                  paste0("</p><br/> <h3>Entidad responsable</h3> <p class = 'description-modal'>",
+                    "<p class = 'title-modal'>",
                          indicadores_dic$label_original[indicadores_dic$id == "actividades_descripcion"],
-                         "</p><br/> <h3>Contraparte</h3><br/> <p class = 'description-modal'>",
-                         df$actividades_descripcion, " </p>"
+                        "<br/></p>", df$actividades_descripcion
                   )
                 )
       )
@@ -999,7 +1000,7 @@ server <- function(input, output, session) {
         tx <- NULL
       }
       if (is.null(tx)) {
-        tx <- "Grupo Núcleo no registra esta información"
+        tx <- "Grupo Núcleo no registra justificación de cumplimiento de responsabilidades"
       } else {
         tx <-  div(class = "bodyModal",
                    HTML( 
@@ -1020,7 +1021,7 @@ server <- function(input, output, session) {
       }
       
       if (is.null(tx)) {
-        tx <- "Grupo Núcleo no registra esta información"
+        tx <- "Grupo Núcleo no registra justificación de cumplimiento de responsabilidades"
       } else {
         tx <-  div(class = "bodyModal",
                    HTML( 
