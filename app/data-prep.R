@@ -109,9 +109,11 @@ dataEntidades$fecha_registro_entidades <- lubridate::as_date(dataEntidades$fecha
 dataEntidades$entidad <- gsub("Secretaria", "Secretaría", dataEntidades$entidad)
 dataEntidades$hito[dataEntidades$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
 #dataEntidades <- dataEntidades[ !duplicated(dataEntidades[, c("compromiso", "hito")], fromLast=T),]
-
-data_temp <- compromisos |> inner_join(dataEntidades)
+dataEntidades$order <- 1:nrow(dataEntidades)
+data_temp <- compromisos |> inner_join(dataEntidades, multiple = "all")
+data_temp <- data_temp |> dplyr::arrange(order)
 data_temp <- data_temp[,names(dataEntidades)]
+data_temp <- data_temp |> dplyr::select(-order)
 dataEntidades  <- data_temp[ !duplicated(data_temp[, c("compromiso", "hito")], fromLast=T),]
 
 
@@ -173,13 +175,14 @@ dataContraparte <- dataContraparte %>% rename("IdContraparte" = "id",
                                               "UpdatedAtContraparte" = "updated_at")
 dataContraparte$fecha_registro_contraparte <- lubridate::as_date(dataContraparte$fecha_registro_contraparte)
 dataContraparte$hito[dataContraparte$hito == "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía, que fueron obtenidos en mesas realizadas de manera previa a la formalización del presente compromiso."] <- "Hito 1: Validación de la política de datos abiertos, elaborada con insumos recibidos de participantes de los sectores público, privado, academia, sociedad civil y ciudadanía"
-
+dataContraparte$order <- 1:nrow(dataContraparte)
 
 # J O I N 
-data_all2 <- compromisos |> inner_join(dataContraparte)#data_all %>% dplyr::left_join(dataContraparte)
+data_all2 <- compromisos |> inner_join(dataContraparte, multiple = "all")#data_all %>% dplyr::left_join(dataContraparte)
+data_all2 <- data_all2 |> dplyr::arrange(order)
 data_all2 <- data_all2[ !duplicated(data_all2[, c("compromiso", "hito")], fromLast=T),]
 data_all2 <- data_all2[,names(dataContraparte)]
-data_all2 <- data_all2 |> dplyr::select(-contraparte)
+data_all2 <- data_all2 |> dplyr::select(-contraparte, -order)
 data_all <- data_all %>% dplyr::left_join(data_all2)
 #data_all <- data_all[ !duplicated(data_all[, c("compromiso", "hito", "contraparte", "entidad")], fromLast=T),]
 
@@ -232,11 +235,12 @@ dataGrupoNucleo$estrategias_grupoNucleo[dataGrupoNucleo$estrategias_grupoNucleo 
 dataGrupoNucleo$estrategias_grupoNucleo[dataGrupoNucleo$estrategias_grupoNucleo == "Si"] <- "Sí"
 dataGrupoNucleo$contraparte_grupoNucleo <- stringr::str_to_title(dataGrupoNucleo$contraparte_grupoNucleo)
 dataGrupoNucleo$contraparte_grupoNucleo[dataGrupoNucleo$contraparte_grupoNucleo == "Si"] <- "Sí"
-
+dataGrupoNucleo$order <- 1:nrow(dataGrupoNucleo)
 
 data_temp <- compromisos |> inner_join(dataGrupoNucleo)
+data_temp <- data_temp |> dplyr::arrange(order)
 data_temp <- data_temp[,names(dataGrupoNucleo)]
-
+data_temp <- data_temp |> select(-order)
 dataGrupoNucleo <- data_temp[ !duplicated(data_temp[, c("compromiso", "hito")], fromLast=T),]
 
 
