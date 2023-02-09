@@ -115,7 +115,7 @@ data_temp <- data_temp |> dplyr::arrange(order)
 data_temp <- data_temp[,names(dataEntidades)]
 data_temp <- data_temp |> dplyr::select(-order)
 dataEntidades  <- data_temp[ !duplicated(data_temp[, c("compromiso", "hito")], fromLast=T),]
-
+dataEntidades <- dataEntidades |> dplyr::select(-entidad)
 
 ### base de datos que une la base de compromisos con entidades
 data_all <- compromisos %>% left_join(dataEntidades)
