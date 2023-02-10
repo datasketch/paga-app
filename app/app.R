@@ -978,7 +978,7 @@ server <- function(input, output, session) {
     if (last_indicator() == "resultados") {
       tx <- div(class = "bodyModal",
                 HTML(
-                  paste0("<h3>Contraparte</h3><br/><p class = 'title-modal'>",
+                  paste0("<h3>La entidad responsable del cumplimiento del hito ha manifestado:</h3><br/><p class = 'title-modal'>",
                          indicadores_dic$label_original[indicadores_dic$id == "realidad_inicial"],":</p><p class = 'description-modal'>",
                          df$realidad_inicial,"</p><br/><p class = 'title-modal'>",
                          indicadores_dic$label_original[indicadores_dic$id == "realidad_descripcion"],":</p>",
