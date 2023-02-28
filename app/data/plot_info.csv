@@ -2,63 +2,56 @@ id,tx
 avance,"<b>Indicador 1.</b><br/><br/><br/>
                   Esta gráfica refleja el porcentaje de cumplimiento de los hitos de cada uno de los compromisos.  Para ver cada compromiso dar clic en la barra del nombre del compromiso y seleccionar. <br/><br/>
                   En azul claro se encuentra el porcentajes de cumplimiento, y en azul oscuro el porcentaje por ejecutar.<br/><br/>
-                  Los hitos finalizados de acuerdo a las fechas del Plan de Acción de Gobierno de Ecuador tienen letras en color verde, y los hitos en proceso se encuentran en color gris.<br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
                  "
 estado,"<b>Indicador 2.</b><br/><br/><br/>
-                  Esta gráfica refleja el estado en que se encuentra la implementación de cada hito del compromiso, según su fecha de actualización más reciente. En la parte inferior de la gráfica se encuentran las seis fases en las que se clasifica el cumplimiento de los hitos, estas son: sin información, detenido, definición, planificación, ejecución y completado.
-                  <br/><br/>
-                  En color naranja se encuentran los estados de avance indicados por las contrapartes; mientras que las barras de color azul corresponden al estado de avance indicado por las entidades responsables y las barras de color verde indican el avance reportado por el Grupo Núcleo.
-                  <br/><br/>
+                  Esta gráfica refleja el estado en que se encuentra la implementación de cada hito del compromiso, según su fecha de actualización más reciente. En la parte inferior de la gráfica se encuentran las cinco fases en las que se clasifica el cumplimiento de los hitos, estas son: detenido, definición, planificación, ejecución y completado.<br/><br/>
+                  En color naranja se encuentran el estado de avance indicado por las contrapartes; mientras que las barras de color azul corresponden al estado de avance indicado por las entidades responsables y las barras de color verde indican el avance reportado por el Grupo Núcleo.<br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
                   "
 cumplimiento,"<b>Indicador 3.</b><br/><br/><br/>
-                  Esta gráfica muestra el cumplimiento de las entidades responsable y contrapartes con sus responsabilidades respecto a la gestión de cada hito.
-                  <br/><br/>Se realizan 4 preguntas distintas; <br/>
+                  Esta gráfica muestra el cumplimiento de las entidades responsables y contrapartes con sus responsabilidades respecto a la gestión de cada hito.<br/><br/>
+                  Se realizan 4 preguntas distintas para cada indicador;<br/>
                   <ul>
-                  <li>Cumplimiento de las responsabilidades adquiridas por parte de la contraparte frente a la entidad responsable.</li>
-                  <li>Cumplimiento de las responsabilidades de la entidad responsable ante la contraparte.</li>
-                  <li>Cumplimiento de las responsabilidades de la contraparte frente al Grupo Núcleo. </li>
-                  <li>Cumplimiento de las responsabilidades de la entidad responsable ante el Grupo Núcleo.</li>
+                  <li>3.1 Cumplimiento de las responsabilidades adquiridas por parte de la contraparte frente a la entidad responsable.</li>
+                  <li>3.2 Cumplimiento de las responsabilidades de la entidad responsable ante la contraparte.</li>
+                  <li>3.3 Cumplimiento de las responsabilidades de la contraparte frente al Grupo Núcleo.</li>
+                  <li>3.4 Cumplimiento de las responsabilidades de la entidad responsable ante el Grupo Núcleo.</li>
                   </ul>
-                  <br/>El código de color usado es:
-                  <ul>
-                  <li>Color azul = entidades responsables</li>
-                  <li>Color naranja = contrapartes</li>
-                  <li>Color verde = Grupo Núcleo</li>
-                  </ul>
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
+                  <br/>
+                  En color naranja se encuentran lo reportado por las contrapartes; mientras que las barras de color azul corresponden a lo indicado por las entidades responsables y las barras de color verde indican lo reportado por el Grupo Núcleo. <br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
                   "
 actividades,"<b>Indicador 4.</b><br/><br/><br/>
                   Esta gráfica muestra el número de actividades en las cuales se han involucrado otros actores relevantes en el proceso para el cumplimiento de los compromisos.<br/><br/>
-                  Al hacer clic en la gráfica aparece la respuesta a la pregunta ¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso?
-                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula<br/><br/>
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
+                  Al hacer clic en la gráfica aparece la respuesta a la pregunta ¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso? <br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula. 
                   "
 participantes,"<b>Indicador 5. </b><br/><br/><br/>
-                  Esta gráfica muestra el número de participantes que se han involucrado en cada uno de los hitos por cada compromiso. <br/><br/>
+                  Esta gráfica muestra el número de participantes que se han involucrado en cada uno de los hitos por cada compromiso.<br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
                   También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-                  Al hacer clic en la gráfica aparece la respuesta a la pregunta ¿Cuáles actividades se realizaron con la inclusión de otros actores relevantes en el compromiso?
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
                   "
 sectores,"<b>Indicador 6. </b><br/><br/><br/>
-                  Esta gráfica muestra los sectores a los que pertenecen los participantes de cada hito del compromiso.  <br/>
-                  <br/>
-                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
+                  Esta gráfica muestra los sectores a los que pertenecen los participantes de cada hito del compromiso.<br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula. 
                   "
 resultados,"<b>Indicador 7.</b><br/><br/><br/>
                   Esta gráfica muestra la percepción de cada actor frente a los resultados de la implementación de cada hito. Se han elegido tres calificaciones para determinar las percepciones de los actores frente a los resultados; estas son, “se mantuvo igual”, “mejoró un poco” y “mejoró sustancialmente”.<br/><br/>
-                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula. 
                   "
 relacion_internacional,"<b>Indicador 8.</b><br/><br/><br/>
                   Esta gráfica muestra si los actores han cumplido con iniciativas internacionales en la culminación de los hitos de los compromisos.<br/><br/>
                   En cada uno de los hitos se determina el cumplimiento con iniciativas internacionales.<br/><br/>
-                  Se detalla la iniciativa internacional relacionada, así como el punto concreto con el que se relaciona. <br/><br/>
-                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula.
-                  <br/><br/> El color del nombre del hito indica su estado, si está en color negro es que el hito se encuentra en desarrollo mientras que si está en color verde es que ha finalizado. 
+                  Se detalla la iniciativa internacional relacionada, así como el punto concreto con el que se relaciona.<br/><br/>
+                  Respecto al color de los hitos (eje Y), los nombres de los hitos finalizados de acuerdo con las fechas del Plan de Acción de Gobierno de Ecuador se encuentran en color verde, y los nombres de los hitos en proceso se encuentran en color gris.<br/><br/>
+                  También puedes explorar la tabla de avances del Plan con el símbolo de la cuadrícula. 
                  "
 estrategias_grupoNucleo,"<b>9. Estrategias de Comunicación Cocreadas:</b><br/><br/><br/>
                  Esta gráfica muestra si existen o no estrategias de comunicación cocreadas en cada compromiso.
